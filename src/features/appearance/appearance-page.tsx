@@ -168,8 +168,8 @@ export default function AppearancePage() {
                 </SelectTrigger>
                 <SelectContent>
                   {professionList.map((item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {t(`profession.${item.value}`)}
+                    <SelectItem key={item.id} value={item.id}>
+                      {t(`profession.${item.id}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>
