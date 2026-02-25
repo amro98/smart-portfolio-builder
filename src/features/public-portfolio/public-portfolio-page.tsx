@@ -1,9 +1,10 @@
 import { useParams, Link } from 'react-router-dom';
-import { usePublicPortfolio } from '@/lib/query/hooks';
+import { usePortfolio, usePublicPortfolio } from '@/lib/query/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n';
 import { PortfolioRenderer } from './portfolio-renderer';
+import type { PublicPortfolioData } from '@/types';
 
 function LoadingSkeleton() {
   return (
@@ -69,6 +70,7 @@ function NotFoundState() {
 export default function PublicPortfolioPage() {
   const { slug } = useParams<{ slug: string }>();
   const { data, isLoading, error } = usePublicPortfolio(slug || '');
+  const { data: portfolio } = usePortfolio();
 
   if (isLoading) {
     return <LoadingSkeleton />;
@@ -78,5 +80,15 @@ export default function PublicPortfolioPage() {
     return <NotFoundState />;
   }
 
-  return <PortfolioRenderer data={data} />;
+  const isMyPortfolioSlug =
+  !!portfolio &&
+  ((portfolio as any)?.slug === slug || (portfolio as any)?.profile?.slug === slug);
+
+  // data is now guaranteed to be non-null/undefined; build final object
+  const dataObj: PublicPortfolioData = {
+    ...data,
+  portfolio:  isMyPortfolioSlug ? (portfolio as any) : data.portfolio,
+  };
+
+  return <PortfolioRenderer data={dataObj} />;
 }
