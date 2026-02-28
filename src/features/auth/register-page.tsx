@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useI18n } from '@/lib/i18n';
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Layers, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
@@ -27,6 +28,7 @@ interface FormErrors {
 export default function RegisterPage() {
   const navigate = useNavigate();
   const { login } = useAuthStore();
+  const { t } = useI18n();
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,22 +42,22 @@ export default function RegisterPage() {
   function validate(): boolean {
     const next: FormErrors = {};
     if (!fullName.trim()) {
-      next.fullName = "Full name is required";
+      next.fullName = t('auth.register.errors.fullName.required');
     }
     if (!email.trim()) {
-      next.email = "Email is required";
+      next.email = t('auth.register.errors.email.required');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      next.email = "Enter a valid email address";
+      next.email = t('auth.register.errors.email.invalid');
     }
     if (!password) {
-      next.password = "Password is required";
+      next.password = t('auth.register.errors.password.required');
     } else if (password.length < 6) {
-      next.password = "Password must be at least 6 characters";
+      next.password = t('auth.register.errors.password.min');
     }
     if (!confirmPassword) {
-      next.confirmPassword = "Please confirm your password";
+      next.confirmPassword = t('auth.register.errors.confirmPassword.required');
     } else if (password !== confirmPassword) {
-      next.confirmPassword = "Passwords do not match";
+      next.confirmPassword = t('auth.register.errors.confirmPassword.mismatch');
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -78,7 +80,7 @@ export default function RegisterPage() {
         { ...response.user, onboardingCompleted: false },
         response.token
       );
-      toast.success("Account created successfully!");
+      toast.success(t('auth.register.toast.success'));
       navigate("/onboarding");
     } catch (err: unknown) {
       const message =
@@ -108,20 +110,18 @@ export default function RegisterPage() {
                     <Layers className="h-6 w-6 text-white" />
                   </div>
                   <span className="text-xl font-semibold tracking-tight">
-                    Smart Portfolio Builder
+                    {t('auth.register.brand')}
                   </span>
                 </div>
                 <h2 className="text-3xl font-bold leading-tight mb-4">
-                  Start building today.
+                  {t('auth.register.marketing.heading')}
                 </h2>
                 <p className="text-white/80 text-base leading-relaxed">
-                  Join thousands of professionals who use Smart Portfolio Builder
-                  to create beautiful, impactful portfolios that win clients and
-                  land opportunities.
+                  {t('auth.register.marketing.description')}
                 </p>
               </div>
               <p className="text-sm text-white/60">
-                Free to get started. No credit card required.
+                {t('auth.register.marketing.footer')}
               </p>
             </div>
 
@@ -131,16 +131,16 @@ export default function RegisterPage() {
                   <Layers className="h-5 w-5 text-white" />
                 </div>
                 <span className="text-lg font-semibold text-foreground">
-                  Smart Portfolio Builder
+                  {t('auth.register.brand')}
                 </span>
               </div>
 
               <CardHeader className="p-0 mb-6">
                 <CardTitle className="text-2xl font-bold text-foreground">
-                  Create an account
+                  {t('auth.register.title')}
                 </CardTitle>
                 <CardDescription className="text-muted-foreground mt-1">
-                  Fill in your details to get started
+                  {t('auth.register.description')}
                 </CardDescription>
               </CardHeader>
 
@@ -148,12 +148,12 @@ export default function RegisterPage() {
                 <CardContent className="p-0 space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-foreground">
-                      Full name
+                      {t('auth.register.fullNameLabel')}
                     </Label>
                     <Input
                       id="fullName"
                       type="text"
-                      placeholder="Jane Doe"
+                      placeholder={t('auth.register.fullNamePlaceholder')}
                       value={fullName}
                       onChange={(e) => {
                         setFullName(e.target.value);
@@ -171,12 +171,12 @@ export default function RegisterPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-foreground">
-                      Email
+                      {t('auth.register.emailLabel')}
                     </Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="you@example.com"
+                      placeholder={t('auth.register.emailPlaceholder')}
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
@@ -192,13 +192,13 @@ export default function RegisterPage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="password" className="text-foreground">
-                      Password
+                      {t('auth.register.passwordLabel')}
                     </Label>
                     <div className="relative">
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="At least 6 characters"
+                        placeholder={t('auth.register.passwordPlaceholder')}
                         value={password}
                         onChange={(e) => {
                           setPassword(e.target.value);
@@ -232,13 +232,13 @@ export default function RegisterPage() {
                       htmlFor="confirmPassword"
                       className="text-foreground"
                     >
-                      Confirm password
+                      {t('auth.register.confirmPasswordLabel')}
                     </Label>
                     <div className="relative">
                       <Input
                         id="confirmPassword"
                         type={showConfirmPassword ? "text" : "password"}
-                        placeholder="Re-enter your password"
+                        placeholder={t('auth.register.confirmPasswordPlaceholder')}
                         value={confirmPassword}
                         onChange={(e) => {
                           setConfirmPassword(e.target.value);
@@ -280,18 +280,18 @@ export default function RegisterPage() {
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       <>
-                        Create account
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        {t('auth.register.submit')}
+                        <ArrowRight className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 rtl:rotate-180" />
                       </>
                     )}
                   </Button>
                   <p className="text-sm text-muted-foreground text-center">
-                    Already have an account?{" "}
+                    {t('auth.register.hasAccount')} {" "}
                     <Link
                       to="/login"
                       className="text-teal-600 hover:text-teal-700 font-medium transition-colors"
                     >
-                      Sign in
+                      {t('auth.register.signIn')}
                     </Link>
                   </p>
                 </CardFooter>

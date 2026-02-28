@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useI18n } from '@/lib/i18n';
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Layers, ArrowLeft, Loader2, Mail, CheckCircle } from "lucide-react";
@@ -16,6 +17,7 @@ import {
 } from "@/components/ui/card";
 
 export default function ForgotPasswordPage() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -23,11 +25,11 @@ export default function ForgotPasswordPage() {
 
   function validate(): boolean {
     if (!email.trim()) {
-      setError("Email is required");
+      setError(t('auth.forgotPassword.errors.email.required'));
       return false;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setError("Enter a valid email address");
+      setError(t('auth.forgotPassword.errors.email.invalid'));
       return false;
     }
     setError("");
@@ -42,9 +44,9 @@ export default function ForgotPasswordPage() {
     try {
       await new Promise((resolve) => setTimeout(resolve, 1500));
       setSubmitted(true);
-      toast.success("Reset link sent to your email");
+      toast.success(t('auth.forgotPassword.toast.linkSent'));
     } catch {
-      toast.error("Something went wrong. Please try again.");
+      toast.error(t('auth.forgotPassword.toast.error'));
     } finally {
       setLoading(false);
     }
@@ -63,7 +65,7 @@ export default function ForgotPasswordPage() {
             <Layers className="h-5 w-5 text-white" />
           </div>
           <span className="text-lg font-semibold text-foreground">
-            Smart Portfolio Builder
+            {t('auth.forgotPassword.brand')}
           </span>
         </div>
 
@@ -79,12 +81,12 @@ export default function ForgotPasswordPage() {
                   <CheckCircle className="h-7 w-7 text-teal-600" />
                 </div>
                 <CardTitle className="text-2xl font-bold text-foreground">
-                  Check your email
+                  {t('auth.forgotPassword.successTitle')}
                 </CardTitle>
                 <CardDescription className="text-muted-foreground mt-2">
-                  We sent a password reset link to{" "}
-                  <span className="font-medium text-foreground">{email}</span>.
-                  Please check your inbox and follow the instructions.
+                  {t('auth.forgotPassword.successDescription')}
+                  <span className="font-medium text-foreground">{email}</span>
+                  . {t('auth.forgotPassword.successInstructions')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-2 pb-2">
@@ -92,8 +94,7 @@ export default function ForgotPasswordPage() {
                   <div className="flex items-start gap-3">
                     <Mail className="h-5 w-5 mt-0.5 text-teal-600 shrink-0" />
                     <p>
-                      If you don&apos;t see the email, check your spam folder.
-                      The link will expire in 24 hours.
+                      {t('auth.forgotPassword.successNote')}
                     </p>
                   </div>
                 </div>
@@ -107,14 +108,14 @@ export default function ForgotPasswordPage() {
                     setEmail("");
                   }}
                 >
-                  Try a different email
+                  {t('auth.forgotPassword.tryDifferentEmail')}
                 </Button>
                 <Link
                   to="/login"
                   className="inline-flex items-center justify-center text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors"
                 >
-                  <ArrowLeft className="mr-1.5 h-4 w-4" />
-                  Back to sign in
+                  <ArrowLeft className="mr-1.5 rtl:mr-0 rtl:ml-1.5 h-4 w-4" />
+                  {t('auth.forgotPassword.backToSignIn')}
                 </Link>
               </CardFooter>
             </motion.div>
@@ -122,11 +123,10 @@ export default function ForgotPasswordPage() {
             <>
               <CardHeader>
                 <CardTitle className="text-2xl font-bold text-foreground">
-                  Forgot your password?
+                  {t('auth.forgotPassword.title')}
                 </CardTitle>
                 <CardDescription className="text-muted-foreground mt-1">
-                  Enter your email and we&apos;ll send you a link to reset your
-                  password.
+                  {t('auth.forgotPassword.description')}
                 </CardDescription>
               </CardHeader>
 
@@ -134,12 +134,12 @@ export default function ForgotPasswordPage() {
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-foreground">
-                      Email address
+                      {t('auth.forgotPassword.emailLabel')}
                     </Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="you@example.com"
+                      placeholder={t('auth.forgotPassword.emailPlaceholder')}
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
@@ -165,8 +165,8 @@ export default function ForgotPasswordPage() {
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       <>
-                        <Mail className="mr-2 h-4 w-4" />
-                        Send reset link
+                        <Mail className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
+                        {t('auth.forgotPassword.submitButton')}
                       </>
                     )}
                   </Button>
@@ -174,8 +174,8 @@ export default function ForgotPasswordPage() {
                     to="/login"
                     className="inline-flex items-center justify-center text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors"
                   >
-                    <ArrowLeft className="mr-1.5 h-4 w-4" />
-                    Back to sign in
+                    <ArrowLeft className="mr-1.5 rtl:mr-0 rtl:ml-1.5 h-4 w-4 rtl:rotate-180" />
+                    {t('auth.forgotPassword.backToSignIn')}
                   </Link>
                 </CardFooter>
               </form>

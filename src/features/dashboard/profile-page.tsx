@@ -31,19 +31,20 @@ import { PageHeader } from '@/components/shared/page-header';
 import { LoadingPage } from '@/components/shared/loading-card';
 import { ErrorState } from '@/components/shared/error-state';
 import type { Portfolio } from '@/types';
+import { useI18n } from '@/lib/i18n';
 
 const profileSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required').max(100),
+  fullName: z.string().min(1, 'profile.basicInformation.fullName.required').max(100),
   title: z.string().max(120).optional().or(z.literal('')),
   bio: z.string().max(2000).optional().or(z.literal('')),
   location: z.string().max(100).optional().or(z.literal('')),
   slug: z
     .string()
-    .min(3, 'Slug must be at least 3 characters')
+    .min(3, 'profile.basicInformation.slug.required')
     .max(40)
-    .regex(/^[a-z0-9-]+$/, 'Only lowercase letters, numbers, and hyphens'),
+    .regex(/^[a-z0-9-]+$/, 'profile.basicInformation.slug.invalid'),
   ctaLabel: z.string().max(50).optional().or(z.literal('')),
-  ctaLink: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+  ctaLink: z.string().url('profile.basicInformation.ctaLink.invalid').optional().or(z.literal('')),
   socialLinks: z.object({
     linkedin: z.string().optional().or(z.literal('')),
     github: z.string().optional().or(z.literal('')),
@@ -59,14 +60,14 @@ const profileSchema = z.object({
 type ProfileFormValues = z.infer<typeof profileSchema>;
 
 const SOCIAL_FIELDS = [
-  { key: 'linkedin' as const, label: 'LinkedIn', icon: Linkedin, placeholder: 'https://linkedin.com/in/username' },
-  { key: 'github' as const, label: 'GitHub', icon: Github, placeholder: 'https://github.com/username' },
-  { key: 'twitter' as const, label: 'Twitter / X', icon: Twitter, placeholder: 'https://x.com/username' },
-  { key: 'instagram' as const, label: 'Instagram', icon: Instagram, placeholder: 'https://instagram.com/username' },
-  { key: 'behance' as const, label: 'Behance', icon: Figma, placeholder: 'https://behance.net/username' },
-  { key: 'dribbble' as const, label: 'Dribbble', icon: Dribbble, placeholder: 'https://dribbble.com/username' },
-  { key: 'website' as const, label: 'Website', icon: Globe, placeholder: 'https://yoursite.com' },
-  { key: 'youtube' as const, label: 'YouTube', icon: Youtube, placeholder: 'https://youtube.com/@channel' },
+  { key: 'linkedin' as const, label: 'profile.socialLinks.fields.linkedin', icon: Linkedin, placeholder: 'https://linkedin.com/in/username' },
+  { key: 'github' as const, label: 'profile.socialLinks.fields.github', icon: Github, placeholder: 'https://github.com/username' },
+  { key: 'twitter' as const, label: 'profile.socialLinks.fields.twitter', icon: Twitter, placeholder: 'https://x.com/username' },
+  { key: 'instagram' as const, label: 'profile.socialLinks.fields.instagram', icon: Instagram, placeholder: 'https://instagram.com/username' },
+  { key: 'behance' as const, label: 'profile.socialLinks.fields.behance', icon: Figma, placeholder: 'https://behance.net/username' },
+  { key: 'dribbble' as const, label: 'profile.socialLinks.fields.dribbble', icon: Dribbble, placeholder: 'https://dribbble.com/username' },
+  { key: 'website' as const, label: 'profile.socialLinks.fields.website', icon: Globe, placeholder: 'https://yoursite.com' },
+  { key: 'youtube' as const, label: 'profile.socialLinks.fields.youtube', icon: Youtube, placeholder: 'https://youtube.com/@channel' },
 ] as const;
 
 function getInitials(name: string): string {
@@ -87,6 +88,7 @@ function formatDate(dateStr: string): string {
 }
 
 export default function ProfilePage() {
+  const { t } = useI18n();
   const {
     data: portfolio,
     isLoading,
@@ -212,15 +214,15 @@ export default function ProfilePage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title="Profile"
-        description="Manage your personal information and social links."
+        title={t('profile.title')}
+        description={t('profile.description')}
       >
         <Button
           onClick={handleSubmit(onSubmit)}
           disabled={!isDirty || isSubmitting || updatePortfolio.isPending}
         >
           <Save className="mr-2 h-4 w-4" />
-          Save Changes
+          {t('profile.saveChanges')}
         </Button>
       </PageHeader>
 
@@ -228,37 +230,37 @@ export default function ProfilePage() {
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Basic Information</CardTitle>
-              <CardDescription>Your public-facing personal details.</CardDescription>
+              <CardTitle className="text-lg">{t('profile.basicInformation')}</CardTitle>
+              <CardDescription>{t('profile.basicInformation.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-5">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="fullName">{t('profile.basicInformation.fullName')}</Label>
                   <Input
                     id="fullName"
                     placeholder="John Doe"
                     {...register('fullName')}
                   />
                   {errors.fullName && (
-                    <p className="text-sm text-destructive">{errors.fullName.message}</p>
+                    <p className="text-sm text-destructive">{t(`${errors.fullName.message}`)}</p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="title">Professional Title</Label>
+                  <Label htmlFor="title">{t('profile.basicInformation.title')}</Label>
                   <Input
                     id="title"
                     placeholder="Full-Stack Developer"
                     {...register('title')}
                   />
                   {errors.title && (
-                    <p className="text-sm text-destructive">{errors.title.message}</p>
+                    <p className="text-sm text-destructive">{(errors.title.message)}</p>
                   )}
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="bio">Bio</Label>
+                <Label htmlFor="bio">{t('profile.basicInformation.bio')}</Label>
                 <Textarea
                   id="bio"
                   placeholder="Tell visitors about yourself..."
@@ -272,7 +274,7 @@ export default function ProfilePage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="location">Location</Label>
+                  <Label htmlFor="location">{t('profile.basicInformation.location')}</Label>
                   <Input
                     id="location"
                     placeholder="San Francisco, CA"
@@ -280,7 +282,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="slug">Username / Slug</Label>
+                  <Label htmlFor="slug">{t('profile.basicInformation.slug')}</Label>
                   <Input
                     id="slug"
                     placeholder="johndoe"
@@ -290,7 +292,7 @@ export default function ProfilePage() {
                     <p className="text-xs text-muted-foreground">/u/{slugValue}</p>
                   )}
                   {errors.slug && (
-                    <p className="text-sm text-destructive">{errors.slug.message}</p>
+                    <p className="text-sm text-destructive">{t(`${errors.slug.message}`)}</p>
                   )}
                 </div>
               </div>
@@ -299,7 +301,7 @@ export default function ProfilePage() {
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="ctaLabel">Contact CTA Label</Label>
+                  <Label htmlFor="ctaLabel">{t('profile.basicInformation.ctaLabel')}</Label>
                   <Input
                     id="ctaLabel"
                     placeholder="Get in Touch"
@@ -307,14 +309,14 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="ctaLink">Contact CTA Link</Label>
+                  <Label htmlFor="ctaLink">{t('profile.basicInformation.ctaLink')}</Label>
                   <Input
                     id="ctaLink"
                     placeholder="https://calendly.com/you"
                     {...register('ctaLink')}
                   />
                   {errors.ctaLink && (
-                    <p className="text-sm text-destructive">{errors.ctaLink.message}</p>
+                    <p className="text-sm text-destructive">{t(`${errors.ctaLink.message}`)}</p>
                   )}
                 </div>
               </div>
@@ -323,14 +325,14 @@ export default function ProfilePage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Social Links</CardTitle>
-              <CardDescription>Connect your online presence.</CardDescription>
+              <CardTitle className="text-lg">{t('profile.socialLinks.title')}</CardTitle>
+              <CardDescription>{t('profile.socialLinks.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2">
                 {SOCIAL_FIELDS.map((field) => (
                   <div key={field.key} className="space-y-2">
-                    <Label htmlFor={`social-${field.key}`}>{field.label}</Label>
+                    <Label htmlFor={`social-${field.key}`}>{t(field.label)}</Label>
                     <div className="relative">
                       <field.icon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
@@ -350,8 +352,8 @@ export default function ProfilePage() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Avatar</CardTitle>
-              <CardDescription>Your profile picture.</CardDescription>
+              <CardTitle className="text-lg">{t('profile.avatar.title')}</CardTitle>
+              <CardDescription>{t('profile.avatar.description')}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-4">
               <div className="relative h-28 w-28 overflow-hidden rounded-full border-2 border-muted bg-muted">
@@ -384,7 +386,7 @@ export default function ProfilePage() {
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Camera className="mr-2 h-4 w-4" />
-                  Upload
+                  {t('profile.avatar.uploadButton')}
                 </Button>
                 {displayAvatar && (
                   <Button
@@ -394,7 +396,7 @@ export default function ProfilePage() {
                     onClick={handleRemoveAvatar}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    Remove
+                    {t('profile.avatar.removeButton')}
                   </Button>
                 )}
               </div>
@@ -403,8 +405,8 @@ export default function ProfilePage() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Info</CardTitle>
-              <CardDescription>Account details (read-only).</CardDescription>
+              <CardTitle className="text-lg">{t('profile.info.title')}</CardTitle>
+              <CardDescription>{t('profile.info.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
@@ -412,7 +414,7 @@ export default function ProfilePage() {
                   <Mail className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">Email</p>
+                  <p className="text-xs text-muted-foreground">{t('profile.info.email')}</p>
                   <p className="text-sm truncate">{portfolio?.email || 'Not set'}</p>
                 </div>
               </div>
@@ -424,7 +426,7 @@ export default function ProfilePage() {
                   <Briefcase className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">Profession</p>
+                  <p className="text-xs text-muted-foreground">{t('profile.info.Profession')}</p>
                   <p className="text-sm capitalize">{portfolio?.profession?.replace('-', ' ') || 'Not set'}</p>
                 </div>
               </div>
@@ -436,7 +438,7 @@ export default function ProfilePage() {
                   <CalendarDays className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-xs text-muted-foreground">Member Since</p>
+                  <p className="text-xs text-muted-foreground">{t('profile.info.memberSince')}</p>
                   <p className="text-sm">
                     {portfolio?.updatedAt ? formatDate(portfolio.updatedAt) : 'Unknown'}
                   </p>

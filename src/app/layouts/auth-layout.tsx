@@ -15,7 +15,7 @@ export default function AuthLayout() {
       <div className="absolute top-4 right-4 z-20">
         <LanguageSwitcher compact />
       </div>
-      <div className="relative z-10 w-full max-w-md">
+      <div className="relative z-10 w-full max-w-2xl">
         <Outlet />
       </div>
     </div>

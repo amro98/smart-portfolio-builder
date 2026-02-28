@@ -3,6 +3,7 @@ import {
   authApi, portfolioApi, projectsApi, experiencesApi,
   skillsApi, servicesApi, certificationsApi, testimonialsApi, galleryApi,
 } from '@/lib/api/client';
+import { useI18n } from '@/lib/i18n';
 import type { Portfolio, Project, Experience, Skill, Service, Certification, Testimonial, GalleryItem } from '@/types';
 import { toast } from 'sonner';
 
@@ -17,34 +18,37 @@ export function usePortfolio() {
 
 export function useUpdatePortfolio() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (data: Partial<Portfolio>) => portfolioApi.update(data),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['portfolio'] });
-      toast.success('Portfolio updated');
+      toast.success(t('toast.portfolio.updated'));
     },
-    onError: () => toast.error('Failed to update portfolio'),
+    onError: () => toast.error(t('toast.portfolio.updateFailed')),
   });
 }
 
 export function usePublishPortfolio() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: portfolioApi.publish,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['portfolio'] });
-      toast.success('Portfolio published!');
+      toast.success(t('toast.portfolio.published'));
     },
   });
 }
 
 export function useUnpublishPortfolio() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: portfolioApi.unpublish,
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['portfolio'] });
-      toast.success('Portfolio unpublished');
+      toast.success(t('toast.portfolio.unpublished'));
     },
   });
 }
@@ -64,28 +68,31 @@ export function useProjects() {
 
 export function useCreateProject() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (data: Omit<Project, 'id' | 'portfolioId'>) => projectsApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['projects'] }); toast.success('Project created'); },
-    onError: () => toast.error('Failed to create project'),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['projects'] }); toast.success(t('toast.project.created')); },
+    onError: () => toast.error(t('toast.project.createFailed')),
   });
 }
 
 export function useUpdateProject() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Project> }) => projectsApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['projects'] }); toast.success('Project updated'); },
-    onError: () => toast.error('Failed to update project'),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['projects'] }); toast.success(t('toast.project.updated')); },
+    onError: () => toast.error(t('toast.project.updateFailed')),
   });
 }
 
 export function useDeleteProject() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (id: string) => projectsApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['projects'] }); toast.success('Project deleted'); },
-    onError: () => toast.error('Failed to delete project'),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['projects'] }); toast.success(t('toast.project.deleted')); },
+    onError: () => toast.error(t('toast.project.deleteFailed')),
   });
 }
 
@@ -104,28 +111,31 @@ export function useExperiences() {
 
 export function useCreateExperience() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (data: Omit<Experience, 'id' | 'portfolioId'>) => experiencesApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['experiences'] }); toast.success('Experience added'); },
-    onError: () => toast.error('Failed to add experience'),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['experiences'] }); toast.success(t('toast.experience.created')); },
+    onError: () => toast.error(t('toast.experience.createFailed')),
   });
 }
 
 export function useUpdateExperience() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Experience> }) => experiencesApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['experiences'] }); toast.success('Experience updated'); },
-    onError: () => toast.error('Failed to update experience'),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['experiences'] }); toast.success(t('toast.experience.updated')); },
+    onError: () => toast.error(t('toast.experience.updateFailed')),
   });
 }
 
 export function useDeleteExperience() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (id: string) => experiencesApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['experiences'] }); toast.success('Experience deleted'); },
-    onError: () => toast.error('Failed to delete experience'),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['experiences'] }); toast.success(t('toast.experience.deleted')); },
+    onError: () => toast.error(t('toast.experience.updateFailed')),
   });
 }
 
@@ -144,25 +154,28 @@ export function useSkills() {
 
 export function useCreateSkill() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (data: Omit<Skill, 'id' | 'portfolioId'>) => skillsApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['skills'] }); toast.success('Skill added'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['skills'] }); toast.success(t('toast.skill.created')); },
   });
 }
 
 export function useUpdateSkill() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Skill> }) => skillsApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['skills'] }); toast.success('Skill updated'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['skills'] }); toast.success(t('toast.skill.updated')); },
   });
 }
 
 export function useDeleteSkill() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (id: string) => skillsApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['skills'] }); toast.success('Skill deleted'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['skills'] }); toast.success(t('toast.skill.deleted')); },
   });
 }
 
@@ -173,25 +186,28 @@ export function useServices() {
 
 export function useCreateService() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (data: Omit<Service, 'id' | 'portfolioId'>) => servicesApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['services'] }); toast.success('Service added'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['services'] }); toast.success(t('toast.service.created')); },
   });
 }
 
 export function useUpdateService() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Service> }) => servicesApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['services'] }); toast.success('Service updated'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['services'] }); toast.success(t('toast.service.updated')); },
   });
 }
 
 export function useDeleteService() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (id: string) => servicesApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['services'] }); toast.success('Service deleted'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['services'] }); toast.success(t('toast.service.deleted')); },
   });
 }
 
@@ -202,25 +218,28 @@ export function useCertifications() {
 
 export function useCreateCertification() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (data: Omit<Certification, 'id' | 'portfolioId'>) => certificationsApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['certifications'] }); toast.success('Certification added'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['certifications'] }); toast.success(t('toast.certification.created')); },
   });
 }
 
 export function useUpdateCertification() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Certification> }) => certificationsApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['certifications'] }); toast.success('Certification updated'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['certifications'] }); toast.success(t('toast.certification.updated')); },
   });
 }
 
 export function useDeleteCertification() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (id: string) => certificationsApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['certifications'] }); toast.success('Certification deleted'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['certifications'] }); toast.success(t('toast.certification.deleted')); },
   });
 }
 
@@ -231,25 +250,28 @@ export function useTestimonials() {
 
 export function useCreateTestimonial() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (data: Omit<Testimonial, 'id' | 'portfolioId'>) => testimonialsApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['testimonials'] }); toast.success('Testimonial added'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['testimonials'] }); toast.success(t('toast.testimonial.created')); },
   });
 }
 
 export function useUpdateTestimonial() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<Testimonial> }) => testimonialsApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['testimonials'] }); toast.success('Testimonial updated'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['testimonials'] }); toast.success(t('toast.testimonial.updated')); },
   });
 }
 
 export function useDeleteTestimonial() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (id: string) => testimonialsApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['testimonials'] }); toast.success('Testimonial deleted'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['testimonials'] }); toast.success(t('toast.testimonial.deleted')); },
   });
 }
 
@@ -260,24 +282,27 @@ export function useGallery() {
 
 export function useCreateGalleryItem() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (data: Omit<GalleryItem, 'id' | 'portfolioId'>) => galleryApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['gallery'] }); toast.success('Image added'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['gallery'] }); toast.success(t('toast.gallery.created')); },
   });
 }
 
 export function useUpdateGalleryItem() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<GalleryItem> }) => galleryApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['gallery'] }); toast.success('Image updated'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['gallery'] }); toast.success(t('toast.gallery.updated')); },
   });
 }
 
 export function useDeleteGalleryItem() {
   const qc = useQueryClient();
+  const { t } = useI18n();
   return useMutation({
     mutationFn: (id: string) => galleryApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['gallery'] }); toast.success('Image deleted'); },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['gallery'] }); toast.success(t('toast.gallery.deleted')); },
   });
 }

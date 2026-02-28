@@ -64,11 +64,12 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import type { Project } from "@/types";
+import { useI18n } from "@/lib/i18n";
 
 const projectSchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  title: z.string().min(1, "projects.titleRequired"),
   category: z.string(),
-  shortDescription: z.string().min(1, "Short description is required"),
+  shortDescription: z.string().min(1, "projects.shortDescriptionRequired"),
   fullDescription: z.string(),
   tags: z.string(),
   coverImage: z.string(),
@@ -84,10 +85,12 @@ const projectSchema = z.object({
 type ProjectFormValues = z.infer<typeof projectSchema>;
 
 function SortableProjectCard({
+  t,
   project,
   onEdit,
   onDelete,
 }: {
+  t: (key: string) => string;
   project: Project;
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
@@ -197,7 +200,7 @@ function SortableProjectCard({
                 className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
-                Live
+                {t('projects.liveLabel')}
               </a>
             )}
           </div>
@@ -226,6 +229,7 @@ function SortableProjectCard({
 }
 
 export default function ProjectsPage() {
+  const { t } = useI18n();
   const { data: projects, isLoading, isError, error } = useProjects();
   const createProject = useCreateProject();
   const updateProject = useUpdateProject();
@@ -376,10 +380,10 @@ export default function ProjectsPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Projects">
+        <PageHeader title={t('projects.title')}>
           <Button disabled>
             <Plus className="mr-2 h-4 w-4" />
-            Add Project
+            {t('projects.addProject')}
           </Button>
         </PageHeader>
         <LoadingGrid />
@@ -390,10 +394,10 @@ export default function ProjectsPage() {
   if (isError) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Projects">
+        <PageHeader title={t('projects.title')}>
           <Button onClick={openCreateDialog}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Project
+            {t('projects.addProject')}
           </Button>
         </PageHeader>
         <ErrorState message={error?.message || "Failed to load projects"} />
@@ -403,19 +407,19 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Projects">
+      <PageHeader title={t('projects.title')}>
         <Button onClick={openCreateDialog}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Project
+          {t('projects.addProject')}
         </Button>
       </PageHeader>
 
       {!projects || projects.length === 0 ? (
         <EmptyState
           icon={FolderOpen}
-          title="No projects yet"
-          description="Add your first project to showcase your work."
-          actionLabel="Add Project"
+          title={t('projects.emptyState.title')}
+          description={t('projects.emptyState.description')}
+          actionLabel={t('projects.emptyState.actionLabel')}
           onAction={openCreateDialog}
         />
       ) : (
@@ -432,6 +436,7 @@ export default function ProjectsPage() {
               <AnimatePresence mode="popLayout">
                 {projects.map((project: Project) => (
                   <SortableProjectCard
+                    t={t}
                     key={project.id}
                     project={project}
                     onEdit={openEditDialog}
@@ -448,31 +453,31 @@ export default function ProjectsPage() {
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {editingProject ? "Edit Project" : "Add Project"}
+              {editingProject ? t('projects.editProject') : t('projects.addProject')}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="title">
-                  Title <span className="text-destructive">*</span>
+                  {t('projects.titleLabel')} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="title"
-                  placeholder="Project title"
+                  placeholder={t('projects.titlePlaceholder')}
                   {...form.register("title")}
                 />
                 {form.formState.errors.title && (
                   <p className="text-sm text-destructive">
-                    {form.formState.errors.title.message}
+                    {t(`${form.formState.errors.title.message}`)}
                   </p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category">{t('projects.categoryLabel')}</Label>
                 <Input
                   id="category"
-                  placeholder="e.g. Web App, Mobile"
+                  placeholder={t('projects.categoryPlaceholder')}
                   {...form.register("category")}
                 />
               </div>
@@ -480,50 +485,50 @@ export default function ProjectsPage() {
 
             <div className="space-y-2">
               <Label htmlFor="shortDescription">
-                Short Description <span className="text-destructive">*</span>
+                {t('projects.shortDescriptionLabel')} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="shortDescription"
-                placeholder="Brief summary"
+                placeholder={t('projects.shortDescriptionPlaceholder')}
                 {...form.register("shortDescription")}
               />
               {form.formState.errors.shortDescription && (
                 <p className="text-sm text-destructive">
-                  {form.formState.errors.shortDescription.message}
+                  {t(`${form.formState.errors.shortDescription.message}`)}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="fullDescription">Full Description</Label>
+              <Label htmlFor="fullDescription">{t('projects.fullDescriptionLabel')}</Label>
               <Textarea
                 id="fullDescription"
-                placeholder="Detailed project description"
+                placeholder={t('projects.fullDescriptionPlaceholder')}
                 rows={4}
                 {...form.register("fullDescription")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tags">Tags (comma-separated)</Label>
+              <Label htmlFor="tags">{t('projects.tagsLabel')}</Label>
               <Input
                 id="tags"
-                placeholder="React, TypeScript, Node.js"
+                placeholder={t('projects.tagsPlaceholder')}
                 {...form.register("tags")}
               />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="coverImage">Cover Image URL</Label>
+                <Label htmlFor="coverImage">{t('projects.coverImageLabel')}</Label>
                 <Input
                   id="coverImage"
-                  placeholder="https://..."
+                  placeholder={t('projects.coverImagePlaceholder')}
                   {...form.register("coverImage")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="date">Date</Label>
+                <Label htmlFor="date">{t('projects.dateLabel')}</Label>
                 <Input
                   id="date"
                   type="date"
@@ -534,18 +539,18 @@ export default function ProjectsPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="liveUrl">Live URL</Label>
+                <Label htmlFor="liveUrl">{t('projects.liveUrlLabel')}</Label>
                 <Input
                   id="liveUrl"
-                  placeholder="https://..."
+                  placeholder={t('projects.liveUrlPlaceholder')}
                   {...form.register("liveUrl")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="repositoryUrl">Repository URL</Label>
+                <Label htmlFor="repositoryUrl">{t('projects.repositoryUrlLabel')}</Label>
                 <Input
                   id="repositoryUrl"
-                  placeholder="https://github.com/..."
+                  placeholder={t('projects.repositoryUrlPlaceholder')}
                   {...form.register("repositoryUrl")}
                 />
               </div>
@@ -553,18 +558,18 @@ export default function ProjectsPage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="clientName">Client Name</Label>
+                <Label htmlFor="clientName">{t('projects.clientNameLabel')}</Label>
                 <Input
                   id="clientName"
-                  placeholder="Client or company"
+                  placeholder={t('projects.clientNamePlaceholder')}
                   {...form.register("clientName")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="roleInProject">Role in Project</Label>
+                <Label htmlFor="roleInProject">{t('projects.roleInProjectLabel')}</Label>
                 <Input
                   id="roleInProject"
-                  placeholder="Lead Developer"
+                  placeholder={t('projects.roleInProjectPlaceholder')}
                   {...form.register("roleInProject")}
                 />
               </div>
@@ -584,11 +589,11 @@ export default function ProjectsPage() {
                   )}
                 />
                 <Label htmlFor="featured" className="cursor-pointer">
-                  Featured project
+                  {t('projects.featuredLabel')}
                 </Label>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
+                <Label htmlFor="status">{t('projects.statusLabel')}</Label>
                 <Controller
                   control={form.control}
                   name="status"
@@ -598,8 +603,8 @@ export default function ProjectsPage() {
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="published">Published</SelectItem>
+                        <SelectItem value="draft">{t('projects.statusDraft')}</SelectItem>
+                        <SelectItem value="published">{t('projects.statusPublished')}</SelectItem>
                       </SelectContent>
                     </Select>
                   )}
@@ -613,7 +618,7 @@ export default function ProjectsPage() {
                 variant="outline"
                 onClick={() => setDialogOpen(false)}
               >
-                Cancel
+                {t('projects.cancelButton')}
               </Button>
               <Button
                 type="submit"
@@ -622,10 +627,10 @@ export default function ProjectsPage() {
                 }
               >
                 {createProject.isPending || updateProject.isPending
-                  ? "Saving..."
+                  ? t('projects.savingButton')
                   : editingProject
-                    ? "Update Project"
-                    : "Create Project"}
+                    ? t('projects.updateButton')
+                    : t('projects.createButton')}
               </Button>
             </DialogFooter>
           </form>
@@ -637,8 +642,8 @@ export default function ProjectsPage() {
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
         }}
-        title="Delete Project"
-        description={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+        title={t('projects.deleteConfirmTitle')}
+        description={t('projects.deleteConfirmDescription', { title: deleteTarget?.title ?? '' })}
         onConfirm={handleDelete}
         destructive
       />

@@ -32,6 +32,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import type { Skill } from "@/types";
+import { useI18n } from "@/lib/i18n";
 
 const CATEGORY_SUGGESTIONS = [
   "Frontend",
@@ -47,7 +48,7 @@ const CATEGORY_SUGGESTIONS = [
 ];
 
 const skillSchema = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, "skills.nameRequired"),
   category: z.string(),
   proficiency: z.number().min(0).max(100),
 });
@@ -55,6 +56,7 @@ const skillSchema = z.object({
 type SkillFormValues = z.infer<typeof skillSchema>;
 
 export default function SkillsPage() {
+  const { t } = useI18n();
   const { data: skills, isLoading, isError, error } = useSkills();
   const createSkill = useCreateSkill();
   const updateSkill = useUpdateSkill();
@@ -88,7 +90,7 @@ export default function SkillsPage() {
     if (!skills || skills.length === 0) return {};
     const groups: Record<string, Skill[]> = {};
     skills.forEach((skill: Skill) => {
-      const cat = skill.category || "Uncategorized";
+      const cat = skill.category || t("skills.uncategorized");
       if (!groups[cat]) groups[cat] = [];
       groups[cat].push(skill);
     });
@@ -132,19 +134,19 @@ export default function SkillsPage() {
             id: editingSkill.id,
             data: values,
           });
-          toast.success("Skill updated successfully");
+          toast.success(t("skills.skillUpdated"));
         } else {
           await createSkill.mutateAsync({
             ...values,
             order: (skills?.length ?? 0) + 1,
           });
-          toast.success("Skill created successfully");
+          toast.success(t("skills.skillCreated"));
         }
         setDialogOpen(false);
         form.reset();
       } catch {
         toast.error(
-          editingSkill ? "Failed to update skill" : "Failed to create skill"
+          editingSkill ? t("skills.errorUpdatingSkill") : t("skills.errorCreatingSkill")
         );
       }
     },
@@ -155,20 +157,20 @@ export default function SkillsPage() {
     if (!deleteTarget) return;
     try {
       await deleteSkill.mutateAsync(deleteTarget.id);
-      toast.success("Skill deleted successfully");
+      toast.success(t("skills.skillDeleted"));
       setDeleteTarget(null);
     } catch {
-      toast.error("Failed to delete skill");
+      toast.error(t("skills.errorDeletingSkill"));
     }
   }, [deleteTarget, deleteSkill]);
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Skills">
+        <PageHeader title={t("skills.title")}>
           <Button disabled>
             <Plus className="mr-2 h-4 w-4" />
-            Add Skill
+            {t("skills.addButton")}
           </Button>
         </PageHeader>
         <LoadingGrid />
@@ -179,32 +181,32 @@ export default function SkillsPage() {
   if (isError) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Skills">
+        <PageHeader title={t("skills.title")}>
           <Button onClick={openCreateDialog}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Skill
+            {t("skills.addButton")}
           </Button>
         </PageHeader>
-        <ErrorState message={error?.message || "Failed to load skills"} />
+        <ErrorState message={error?.message || t("skills.errorLoadingSkills")} />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Skills">
+      <PageHeader title={t("skills.title")}>
         <Button onClick={openCreateDialog}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Skill
+          {t("skills.addButton")}
         </Button>
       </PageHeader>
 
       {!skills || skills.length === 0 ? (
         <EmptyState
           icon={Zap}
-          title="No skills added"
-          description="Add your skills to showcase your expertise and proficiency levels."
-          actionLabel="Add Skill"
+          title={t("skills.emptyState.title")}
+          description={t("skills.emptyState.description")}
+          actionLabel={t("skills.emptyState.actionLabel")}
           onAction={openCreateDialog}
         />
       ) : (
@@ -250,7 +252,7 @@ export default function SkillsPage() {
                                 variant="secondary"
                                 className="shrink-0 text-xs font-normal"
                               >
-                                {skill.category || "Uncategorized"}
+                                {skill.category || t("skills.uncategorized")}
                               </Badge>
                             </div>
                           </div>
@@ -277,7 +279,7 @@ export default function SkillsPage() {
                         <div className="mt-3 space-y-1.5">
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-muted-foreground">
-                              Proficiency
+                              {t("skills.proficiencyLabel")}
                             </span>
                             <span className="font-medium text-foreground">
                               {skill.proficiency ?? 0}%
@@ -302,31 +304,31 @@ export default function SkillsPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editingSkill ? "Edit Skill" : "Add Skill"}
+              {editingSkill ? t("skills.editButton") : t("skills.addButton")}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">
-                Name <span className="text-destructive">*</span>
+                {t("skills.nameLabel")} <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="name"
-                placeholder="e.g. React, Python, Project Management"
+                placeholder={t("skills.namePlaceholder")}
                 {...form.register("name")}
               />
               {form.formState.errors.name && (
                 <p className="text-sm text-destructive">
-                  {form.formState.errors.name.message}
+                  {t(`${form.formState.errors.name.message}`)}
                 </p>
               )}
             </div>
 
             <div className="relative space-y-2">
-              <Label htmlFor="category">Category</Label>
+              <Label htmlFor="category">{t("skills.categoryLabel")}</Label>
               <Input
                 id="category"
-                placeholder="e.g. Frontend, Backend, DevOps"
+                placeholder={t("skills.categoryPlaceholder")}
                 autoComplete="off"
                 {...form.register("category")}
                 onFocus={() => setShowSuggestions(true)}
@@ -356,7 +358,7 @@ export default function SkillsPage() {
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <Label htmlFor="proficiency">Proficiency</Label>
+                <Label htmlFor="proficiency">{t("skills.proficiencyLabel")}</Label>
                 <span className="text-sm font-medium text-foreground">
                   {proficiencyValue ?? 50}%
                 </span>
@@ -382,8 +384,8 @@ export default function SkillsPage() {
                 )}
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Beginner</span>
-                <span>Expert</span>
+                <span>{t("skills.beginner")}</span>
+                <span>{t("skills.expert")}</span>
               </div>
             </div>
 
@@ -393,17 +395,17 @@ export default function SkillsPage() {
                 variant="outline"
                 onClick={() => setDialogOpen(false)}
               >
-                Cancel
+                {t('skills.cancelButton')}
               </Button>
               <Button
                 type="submit"
                 disabled={createSkill.isPending || updateSkill.isPending}
               >
                 {createSkill.isPending || updateSkill.isPending
-                  ? "Saving..."
+                  ? t('skills.savingButton')
                   : editingSkill
-                    ? "Update Skill"
-                    : "Create Skill"}
+                    ? t('skills.updateSkill')
+                    : t('skills.createSkill')}
               </Button>
             </DialogFooter>
           </form>
@@ -415,8 +417,8 @@ export default function SkillsPage() {
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
         }}
-        title="Delete Skill"
-        description={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        title={t('skills.deleteConfirmTitle')}
+        description={t('skills.deleteConfirmDescription', { skillName: deleteTarget?.name || '' })}
         onConfirm={handleDelete}
         destructive
       />

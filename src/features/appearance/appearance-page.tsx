@@ -220,10 +220,10 @@ export default function AppearancePage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Layout className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-lg">Template</CardTitle>
+            <CardTitle className="text-lg">{t('appearance.template.title')}</CardTitle>
           </div>
           <CardDescription>
-            Choose a layout template for your portfolio
+            {t('appearance.template.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -257,12 +257,12 @@ export default function AppearancePage() {
                       />
                       {isDisabled && (
                         <div className="absolute inset-0 flex items-center justify-center bg-background/70">
-                          <Badge variant="secondary">Coming Soon</Badge>
+                          <Badge variant="secondary">{t('appearance.template.disabled')}</Badge>
                         </div>
                       )}
                       {isSelected && (
                         <div className="absolute right-2 top-2">
-                          <Badge>Active</Badge>
+                          <Badge>{t('appearance.template.active')}</Badge>
                         </div>
                       )}
                     </div>
@@ -284,10 +284,10 @@ export default function AppearancePage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Sun className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-lg">Theme Mode</CardTitle>
+            <CardTitle className="text-lg">{t('appearance.theme.title')}</CardTitle>
           </div>
           <CardDescription>
-            Select the default theme for your portfolio
+            {t('appearance.theme.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -328,10 +328,10 @@ export default function AppearancePage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Paintbrush className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-lg">Color Palette</CardTitle>
+            <CardTitle className="text-lg">{t('appearance.colorPalette.title')}</CardTitle>
           </div>
           <CardDescription>
-            Pick a color scheme that matches your brand
+            {t('appearance.colorPalette.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -392,10 +392,10 @@ export default function AppearancePage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Type className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-lg">Typography</CardTitle>
+            <CardTitle className="text-lg">{t('appearance.typography.title')}</CardTitle>
           </div>
           <CardDescription>
-            Choose a font combination for your portfolio
+            {t('appearance.typography.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -438,7 +438,7 @@ export default function AppearancePage() {
                           fontWeight: preset.headingWeight,
                         }}
                       >
-                        Heading Text
+                        {t('appearance.typography.headingSample')}
                       </p>
                       <p
                         className="text-sm text-muted-foreground"
@@ -447,7 +447,7 @@ export default function AppearancePage() {
                           fontWeight: preset.bodyWeight,
                         }}
                       >
-                        Body text sample for preview
+                        {t('appearance.typography.bodySample')}
                       </p>
                     </div>
                   </button>
@@ -462,10 +462,10 @@ export default function AppearancePage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-lg">Animation Preset</CardTitle>
+            <CardTitle className="text-lg">{t('appearance.animationPreset.title')}</CardTitle>
           </div>
           <CardDescription>
-            Control the level of animation on your portfolio
+            {t('appearance.animationPreset.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -509,17 +509,17 @@ export default function AppearancePage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Paintbrush className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-lg">Custom Accent Color</CardTitle>
+            <CardTitle className="text-lg">{t('appearance.customAccentColor.title')}</CardTitle>
           </div>
           <CardDescription>
-            Override the palette accent with your own hex color
+            {t('appearance.customAccentColor.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-4">
             <div className="flex-1 max-w-xs">
               <Label htmlFor="customAccentColor" className="sr-only">
-                Hex Color
+                {t('appearance.customAccentColor.inputLabel')}
               </Label>
               <Input
                 id="customAccentColor"
@@ -556,10 +556,10 @@ export default function AppearancePage() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <Eye className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-lg">Section Visibility</CardTitle>
+            <CardTitle className="text-lg">{t('appearance.sectionVisibility.title')}</CardTitle>
           </div>
           <CardDescription>
-            Toggle which sections appear on your published portfolio
+            {t('appearance.sectionVisibility.description')}
           </CardDescription>
         </CardHeader>
         <CardContent>

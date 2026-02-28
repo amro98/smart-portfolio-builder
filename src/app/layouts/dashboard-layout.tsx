@@ -36,11 +36,18 @@ import {
   Settings,
   ChevronLeft,
   Layers,
+  ChevronRight,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
 import { LanguageSwitcher } from '@/components/shared/language-switcher';
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+  TooltipProvider,
+} from '@/components/ui/tooltip';
 
 const mainNavItems = [
   { labelKey: 'dashboard.nav.overview', icon: LayoutDashboard, to: '/dashboard', end: true },
@@ -65,13 +72,34 @@ function SidebarContent({
   onToggleCollapse,
   onMobileClose,
   isMobile,
+  dir,
 }: {
   collapsed: boolean;
   onToggleCollapse: () => void;
   onMobileClose?: () => void;
   isMobile: boolean;
+  dir: 'ltr' | 'rtl';
 }) {
   const { t } = useI18n();
+
+  // helper to render a navigation icon, wrapping with a tooltip when the
+  // sidebar is collapsed. Tooltips appear on the right (or left for RTL)
+  const renderIcon = (Icon: React.ElementType, label: string) => {
+    const element = <Icon className="h-4 w-4 shrink-0" />;
+    if (collapsed && !isMobile) {
+      return (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>{element}</TooltipTrigger>
+            <TooltipContent side={dir === 'rtl' ? 'left' : 'right'}>
+              {label}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+    return element;
+  };
 
   const navLinkClass = useCallback(
     ({ isActive }: { isActive: boolean }) =>
@@ -123,7 +151,7 @@ function SidebarContent({
             className={navLinkClass}
             onClick={handleNavClick}
           >
-            <item.icon className="h-4 w-4 shrink-0" />
+            {renderIcon(item.icon, t(item.labelKey))}
             {(!collapsed || isMobile) && <span>{t(item.labelKey)}</span>}
           </NavLink>
         ))}
@@ -137,7 +165,7 @@ function SidebarContent({
             className={navLinkClass}
             onClick={handleNavClick}
           >
-            <item.icon className="h-4 w-4 shrink-0" />
+            {renderIcon(item.icon, t(item.labelKey))}
             {(!collapsed || isMobile) && <span>{t(item.labelKey)}</span>}
           </NavLink>
         ))}
@@ -148,14 +176,23 @@ function SidebarContent({
           <Button
             variant="ghost"
             size="sm"
-            className="w-full justify-center"
+            className={`w-full justify-center ${collapsed ? 'px-0' : ''}`}
             onClick={onToggleCollapse}
           >
-            <ChevronLeft
-              className={`h-4 w-4 transition-transform duration-200 ${
-                collapsed ? 'rotate-180' : ''
-              }`}
-            />
+            {/* choose a chevron direction that indicates the *action* when
+                the sidebar is collapsed or expanded. using explicit icons
+                avoids confusion from rotations. */}
+            {dir === 'rtl' ? (
+              collapsed ? (
+                <ChevronLeft className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )
+            ) : collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
           </Button>
         </div>
       )}
@@ -205,7 +242,7 @@ export default function DashboardLayout() {
   return (
     <div className="flex h-screen overflow-hidden bg-background text-foreground">
       <aside
-        className={`hidden flex-shrink-0 border-r border-border bg-background transition-all duration-200 ease-in-out md:flex md:flex-col ${
+        className={`hidden flex-shrink-0 border-r rtl:border-r-0 rtl:border-l border-border bg-background transition-all duration-200 ease-in-out md:flex md:flex-col ${
           sidebarOpen ? 'w-60' : 'w-[52px]'
         }`}
       >
@@ -213,6 +250,7 @@ export default function DashboardLayout() {
           collapsed={!sidebarOpen}
           onToggleCollapse={toggleSidebar}
           isMobile={false}
+          dir={dir}
         />
       </aside>
 
@@ -232,13 +270,14 @@ export default function DashboardLayout() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed inset-y-0 left-0 z-50 w-64 border-r border-border bg-background md:hidden"
+              className="fixed inset-y-0 left-0 z-50 w-64 border-r rtl:border-r-0 rtl:border-l border-border bg-background md:hidden"
             >
               <SidebarContent
                 collapsed={false}
                 onToggleCollapse={() => {}}
                 onMobileClose={() => setMobileOpen(false)}
                 isMobile={true}
+                dir={dir}
               />
             </motion.aside>
           </>
@@ -270,7 +309,7 @@ export default function DashboardLayout() {
             />
           </div>
 
-          <div className="ml-auto flex items-center gap-2">
+          <div className="ms-auto flex items-center gap-2">
             <LanguageSwitcher compact />
             <Button
               variant="ghost"
@@ -286,7 +325,7 @@ export default function DashboardLayout() {
 
             <Button variant="ghost" size="sm" asChild>
               <Link to="/dashboard/preview" target="_blank">
-                <Eye className="mr-2 h-4 w-4" />
+                <Eye className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
                 <span className="hidden sm:inline">{t('common.preview')}</span>
               </Link>
             </Button>
@@ -313,12 +352,12 @@ export default function DashboardLayout() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link to="/dashboard/preview" target="_blank" className="cursor-pointer">
-                    <Eye className="mr-2 h-4 w-4" />
+                    <Eye className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
                     {t('common.previewPortfolio')}
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem disabled>
-                  <Settings className="mr-2 h-4 w-4" />
+                  <Settings className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
                   {t('common.settings')}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -326,7 +365,7 @@ export default function DashboardLayout() {
                   className="cursor-pointer text-destructive focus:text-destructive"
                   onClick={handleSignOut}
                 >
-                  <LogOut className="mr-2 h-4 w-4" />
+                  <LogOut className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
                   {t('common.signOut')}
                 </DropdownMenuItem>
               </DropdownMenuContent>

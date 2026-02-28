@@ -25,6 +25,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/components/shared/page-header';
 import { LoadingPage } from '@/components/shared/loading-card';
 import { ErrorState } from '@/components/shared/error-state';
+import { useI18n } from '@/lib/i18n';
 
 const container = {
   hidden: { opacity: 0 },
@@ -67,6 +68,7 @@ const MOCK_ACTIVITY = [
 ];
 
 export default function OverviewPage() {
+  const { t } = useI18n();
   const {
     data: portfolio,
     isLoading: portfolioLoading,
@@ -93,19 +95,19 @@ export default function OverviewPage() {
     if (!portfolio || !projects) return [];
     return [
       {
-        label: 'Complete your profile',
+        label: 'overview.portfolio.checklist.completeYourProfile',
         done: !!portfolio.fullName,
       },
       {
-        label: 'Add at least one project',
+        label: 'overview.portfolio.checklist.addProject',
         done: (projects as unknown[]).length > 0,
       },
       {
-        label: 'Customize appearance',
+        label: 'overview.portfolio.checklist.customizeAppearance',
         done: portfolio.templateId !== 'modern',
       },
       {
-        label: 'Publish your portfolio',
+        label: 'overview.portfolio.checklist.publishPortfolio',
         done: portfolio.isPublished,
       },
     ];
@@ -134,20 +136,20 @@ export default function OverviewPage() {
 
   const stats = [
     {
-      label: 'Projects',
+      label: 'overview.stats.projects',
       value: String(projectCount),
       icon: FolderOpen,
       color: 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400',
     },
     {
-      label: 'Sections Enabled',
+      label: 'overview.stats.sections',
       value: String(enabledSections),
       icon: List,
       color: 'bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400',
     },
     {
-      label: 'Status',
-      value: portfolio?.isPublished ? 'Published' : 'Draft',
+      label: 'overview.stats.status',
+      value: portfolio?.isPublished ? (t('overview.stats.value.published')) : t('overview.stats.value.draft'),
       icon: Globe,
       color: portfolio?.isPublished
         ? 'bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400'
@@ -155,7 +157,7 @@ export default function OverviewPage() {
       badge: true,
     },
     {
-      label: 'Views',
+      label: 'overview.stats.views',
       value: '1,247',
       icon: Eye,
       color: 'bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400',
@@ -164,22 +166,22 @@ export default function OverviewPage() {
 
   const quickActions = [
     {
-      label: 'Add Project',
+      label: 'overview.portfolio.quickActions.actions.addProject',
       icon: Plus,
       to: '/dashboard/projects',
     },
     {
-      label: 'Edit Profile',
+      label: 'overview.portfolio.quickActions.actions.editProfile',
       icon: UserCog,
       to: '/dashboard/profile',
     },
     {
-      label: 'Preview',
+      label: 'overview.portfolio.quickActions.actions.preview',
       icon: ExternalLink,
       to: `/u/${portfolio?.slug ?? ''}`,
     },
     {
-      label: 'Publish',
+      label: 'overview.portfolio.quickActions.actions.publish',
       icon: Send,
       to: '/dashboard/settings',
     },
@@ -188,8 +190,8 @@ export default function OverviewPage() {
   return (
     <div className="space-y-8">
       <PageHeader
-        title={`Welcome back${portfolio?.fullName ? `, ${portfolio.fullName}` : ''}`}
-        description="Here's an overview of your portfolio."
+        title={`${t('overview.welcome')}${portfolio?.fullName ? `, ${portfolio.fullName}` : ''}`}
+        description={t('overview.description')}
       />
 
       <motion.div
@@ -210,7 +212,7 @@ export default function OverviewPage() {
                     <stat.icon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm text-muted-foreground truncate">{stat.label}</p>
+                    <p className="text-sm text-muted-foreground truncate">{t(stat.label)}</p>
                     <div className="mt-0.5">
                       {stat.badge ? (
                         <Badge variant={portfolio?.isPublished ? 'success' : 'secondary'}>
@@ -231,9 +233,9 @@ export default function OverviewPage() {
           <motion.div variants={item}>
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Complete Your Portfolio</CardTitle>
+                <CardTitle className="text-lg">{t('overview.completeYourPortfolio')}</CardTitle>
                 <CardDescription>
-                  {completedCount} of {checklist.length} tasks completed
+                   {t('overview.portfolio.progress', { completedCount, total: checklist.length })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-5">
@@ -253,7 +255,7 @@ export default function OverviewPage() {
                             : 'text-sm'
                         }
                       >
-                        {task.label}
+                        {t(task.label)}
                       </span>
                     </div>
                   ))}
@@ -265,8 +267,8 @@ export default function OverviewPage() {
           <motion.div variants={item}>
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Quick Actions</CardTitle>
-                <CardDescription>Common tasks at your fingertips</CardDescription>
+                <CardTitle className="text-lg">{t('overview.portfolio.quickActions')}</CardTitle>
+                <CardDescription>{t('overview.portfolio.quickActions.description')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
@@ -279,7 +281,7 @@ export default function OverviewPage() {
                     >
                       <Link to={action.to}>
                         <action.icon className="h-5 w-5" />
-                        <span className="text-sm font-medium">{action.label}</span>
+                        <span className="text-sm font-medium">{t(action.label)}</span>
                       </Link>
                     </Button>
                   ))}
@@ -292,8 +294,8 @@ export default function OverviewPage() {
         <motion.div variants={item}>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Recent Activity</CardTitle>
-              <CardDescription>Your latest portfolio updates</CardDescription>
+              <CardTitle className="text-lg">{t('overview.portfolio.recentActivity')}</CardTitle>
+              <CardDescription>{t('overview.portfolio.recentActivity.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

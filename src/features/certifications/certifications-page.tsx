@@ -16,6 +16,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import { useI18n } from '@/lib/i18n';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -28,8 +29,8 @@ import { ErrorState } from '@/components/shared/error-state';
 import type { Certification } from '@/types';
 
 const certificationSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  institution: z.string().min(1, 'Institution is required'),
+  title: z.string().min(1, 'certifications.titleRequired'),
+  institution: z.string().min(1, 'certifications.institutionRequired'),
   type: z.enum(['education', 'certification']),
   issueDate: z.string(),
   expiryDate: z.string(),
@@ -40,6 +41,7 @@ const certificationSchema = z.object({
 type CertificationFormValues = z.infer<typeof certificationSchema>;
 
 export default function CertificationsPage() {
+  const { t } = useI18n();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Certification | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Certification | null>(null);
@@ -133,13 +135,17 @@ export default function CertificationsPage() {
       return (
         <EmptyState
           icon={Award}
-          title={activeTab === 'education' ? 'No education entries' : 'No certifications'}
+          title={
+            activeTab === 'education'
+              ? t('certifications.emptyState.title.education')
+              : t('certifications.emptyState.title.certification')
+          }
           description={
             activeTab === 'education'
-              ? 'Add your educational background to showcase your qualifications.'
-              : 'Add your certifications to highlight your professional credentials.'
+              ? t('certifications.emptyState.description.education')
+              : t('certifications.emptyState.description.certification')
           }
-          actionLabel="Add Entry"
+          actionLabel={t('certifications.emptyState.actionLabel')}
           onAction={openCreate}
         />
       );
@@ -156,7 +162,7 @@ export default function CertificationsPage() {
                   <p className="text-sm text-muted-foreground">{item.institution}</p>
                 </div>
                 <Badge variant={item.type === 'education' ? 'secondary' : 'outline'}>
-                  {item.type === 'education' ? 'Education' : 'Certification'}
+                  {item.type === 'education' ? t('certifications.badge.education') : t('certifications.badge.certification')}
                 </Badge>
               </div>
             </CardHeader>
@@ -169,7 +175,7 @@ export default function CertificationsPage() {
                   </span>
                 )}
                 {item.credentialId && (
-                  <span>ID: {item.credentialId}</span>
+                  <span>{t('certifications.credentialIdLabel')}: {item.credentialId}</span>
                 )}
               </div>
               {item.verificationUrl && (
@@ -180,17 +186,17 @@ export default function CertificationsPage() {
                   className="inline-flex items-center gap-1 text-sm text-primary hover:underline"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
-                  Verify Credential
+                  {t('certifications.verifyLabel')}
                 </a>
               )}
               <div className="flex items-center gap-2 pt-1">
                 <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
                   <Pencil className="mr-1 h-3.5 w-3.5" />
-                  Edit
+                  {t('certifications.actions.edit')}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(item)}>
                   <Trash2 className="mr-1 h-3.5 w-3.5" />
-                  Delete
+                  {t('certifications.actions.delete')}
                 </Button>
               </div>
             </CardContent>
@@ -203,10 +209,10 @@ export default function CertificationsPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Certifications & Education">
+        <PageHeader title={t('certifications.title')}>
           <Button disabled>
             <Plus className="mr-2 h-4 w-4" />
-            Add Entry
+            {t('certifications.addButton')}
           </Button>
         </PageHeader>
         <LoadingGrid count={4} />
@@ -217,28 +223,28 @@ export default function CertificationsPage() {
   if (isError) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Certifications & Education" />
-        <ErrorState message="Failed to load certifications" onRetry={() => refetch()} />
+        <PageHeader title={t('certifications.title')} />
+        <ErrorState message={t('certifications.errorLoading')} onRetry={() => refetch()} />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Certifications & Education" description="Manage your qualifications and credentials">
+      <PageHeader title={t('certifications.title')} description={t('certifications.headerDescription')}>
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Entry
+          {t('certifications.addButton')}
         </Button>
       </PageHeader>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="education">
-            Education ({educationItems.length})
+            {t('certifications.tab.education')} ({educationItems.length})
           </TabsTrigger>
           <TabsTrigger value="certification">
-            Certifications ({certificationItems.length})
+            {t('certifications.tab.certification')} ({certificationItems.length})
           </TabsTrigger>
         </TabsList>
         <TabsContent value="education" className="mt-4">
@@ -252,41 +258,41 @@ export default function CertificationsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingItem ? 'Edit Entry' : 'Add Entry'}</DialogTitle>
+            <DialogTitle>{editingItem ? t('certifications.dialog.editTitle') : t('certifications.dialog.addTitle')}</DialogTitle>
             <DialogDescription>
               {editingItem
-                ? 'Update the details for this entry.'
-                : 'Fill in the details for your new entry.'}
+                ? t('certifications.dialog.editDescription')
+                : t('certifications.dialog.createDescription')}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input id="title" placeholder="e.g. Bachelor of Science" {...form.register('title')} />
+              <Label htmlFor="title">{t('certifications.titleLabel')}</Label>
+              <Input id="title" placeholder={t('certifications.titlePlaceholder')} {...form.register('title')} />
               {form.formState.errors.title && (
-                <p className="text-sm text-destructive">{form.formState.errors.title.message}</p>
+                <p className="text-sm text-destructive">{t(form.formState.errors.title.message as string)}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="institution">Institution</Label>
-              <Input id="institution" placeholder="e.g. MIT" {...form.register('institution')} />
+              <Label htmlFor="institution">{t('certifications.institutionLabel')}</Label>
+              <Input id="institution" placeholder={t('certifications.institutionPlaceholder')} {...form.register('institution')} />
               {form.formState.errors.institution && (
-                <p className="text-sm text-destructive">{form.formState.errors.institution.message}</p>
+                <p className="text-sm text-destructive">{t(form.formState.errors.institution.message as string)}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label>{t('certifications.typeLabel')}</Label>
               <Controller
                 name="type"
                 control={form.control}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder={t('certifications.typeLabel')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="education">Education</SelectItem>
-                      <SelectItem value="certification">Certification</SelectItem>
+                      <SelectItem value="education">{t('certifications.tab.education')}</SelectItem>
+                      <SelectItem value="certification">{t('certifications.tab.certification')}</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
@@ -294,35 +300,35 @@ export default function CertificationsPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="issueDate">Issue Date</Label>
+                <Label htmlFor="issueDate">{t('certifications.issueDateLabel')}</Label>
                 <Input id="issueDate" type="date" {...form.register('issueDate')} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="expiryDate">Expiry Date</Label>
+                <Label htmlFor="expiryDate">{t('certifications.expiryDateLabel')}</Label>
                 <Input id="expiryDate" type="date" {...form.register('expiryDate')} />
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="credentialId">Credential ID</Label>
-              <Input id="credentialId" placeholder="e.g. ABC-12345" {...form.register('credentialId')} />
+              <Label htmlFor="credentialId">{t('certifications.credentialIdLabel')}</Label>
+              <Input id="credentialId" placeholder={t('certifications.credentialIdPlaceholder')} {...form.register('credentialId')} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="verificationUrl">Verification URL</Label>
-              <Input id="verificationUrl" placeholder="https://..." {...form.register('verificationUrl')} />
+              <Label htmlFor="verificationUrl">{t('certifications.verificationUrlLabel')}</Label>
+              <Input id="verificationUrl" placeholder={t('certifications.verificationUrlPlaceholder')} {...form.register('verificationUrl')} />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
+                {t('certifications.cancelButton')}
               </Button>
               <Button
                 type="submit"
                 disabled={createCertification.isPending || updateCertification.isPending}
               >
                 {createCertification.isPending || updateCertification.isPending
-                  ? 'Saving...'
+                  ? t('certifications.savingButton')
                   : editingItem
-                    ? 'Update Entry'
-                    : 'Add Entry'}
+                    ? t('certifications.updateButton')
+                    : t('certifications.createButton')}
               </Button>
             </DialogFooter>
           </form>
@@ -332,9 +338,9 @@ export default function CertificationsPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title="Delete Entry"
-        description={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
-        confirmLabel="Delete"
+        title={t('certifications.deleteConfirmTitle')}
+        description={t('certifications.deleteConfirmDescription', { title: deleteTarget?.title || '' })}
+        confirmLabel={t('certifications.deleteConfirmButton')}
         onConfirm={handleDelete}
         destructive
       />

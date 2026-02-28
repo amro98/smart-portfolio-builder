@@ -16,6 +16,7 @@ import {
   Dialog, DialogContent, DialogDescription, DialogFooter,
   DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
+import { useI18n } from '@/lib/i18n';
 import { PageHeader } from '@/components/shared/page-header';
 import { EmptyState } from '@/components/shared/empty-state';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
@@ -25,7 +26,7 @@ import type { GalleryItem } from '@/types';
 
 const gallerySchema = z.object({
   title: z.string(),
-  imageUrl: z.string().min(1, 'Image URL is required'),
+  imageUrl: z.string().min(1, 'gallery.imageUrlRequired'),
   category: z.string(),
   description: z.string(),
 });
@@ -33,6 +34,7 @@ const gallerySchema = z.object({
 type GalleryFormValues = z.infer<typeof gallerySchema>;
 
 export default function GalleryPage() {
+  const { t } = useI18n();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<GalleryItem | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<GalleryItem | null>(null);
@@ -98,10 +100,10 @@ export default function GalleryPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Gallery">
+        <PageHeader title={t('gallery.title')}>
           <Button disabled>
             <Plus className="mr-2 h-4 w-4" />
-            Add Image
+            {t('gallery.addButton')}
           </Button>
         </PageHeader>
         <LoadingGrid count={8} />
@@ -112,27 +114,27 @@ export default function GalleryPage() {
   if (isError) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Gallery" />
-        <ErrorState message="Failed to load gallery" onRetry={() => refetch()} />
+        <PageHeader title={t('gallery.title')} />
+        <ErrorState message={t('gallery.errorLoading')} onRetry={() => refetch()} />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Gallery" description="Manage your portfolio images and media">
+      <PageHeader title={t('gallery.title')} description={t('gallery.headerDescription')}>
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Image
+          {t('gallery.addButton')}
         </Button>
       </PageHeader>
 
       {gallery && gallery.length === 0 ? (
         <EmptyState
           icon={Image}
-          title="No images yet"
-          description="Add images to create a visual showcase of your work."
-          actionLabel="Add Image"
+          title={t('gallery.emptyState.title')}
+          description={t('gallery.emptyState.description')}
+          actionLabel={t('gallery.emptyState.actionLabel')}
           onAction={openCreate}
         />
       ) : (
@@ -145,7 +147,7 @@ export default function GalleryPage() {
               <div className="aspect-square">
                 <img
                   src={item.imageUrl}
-                  alt={item.title || 'Gallery image'}
+                  alt={item.title || t('gallery.imageAlt')}
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
@@ -186,19 +188,19 @@ export default function GalleryPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingItem ? 'Edit Image' : 'Add Image'}</DialogTitle>
+            <DialogTitle>{editingItem ? t('gallery.updateButton') : t('gallery.createButton')}</DialogTitle>
             <DialogDescription>
               {editingItem
-                ? 'Update the details for this image.'
-                : 'Add a new image to your gallery.'}
+                ? t('gallery.form.editDescription') ?? t('gallery.updateButton')
+                : t('gallery.form.createDescription') ?? t('gallery.createButton')}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="imageUrl">Image URL</Label>
-              <Input id="imageUrl" placeholder="https://example.com/image.jpg" {...form.register('imageUrl')} />
+              <Label htmlFor="imageUrl">{t('gallery.imageUrlLabel')}</Label>
+              <Input id="imageUrl" placeholder={t('gallery.imageUrlPlaceholder')} {...form.register('imageUrl')} />
               {form.formState.errors.imageUrl && (
-                <p className="text-sm text-destructive">{form.formState.errors.imageUrl.message}</p>
+                <p className="text-sm text-destructive">{t(form.formState.errors.imageUrl.message as string)}</p>
               )}
               {form.watch('imageUrl') && (
                 <div className="mt-2 overflow-hidden rounded-md border">
@@ -214,35 +216,35 @@ export default function GalleryPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input id="title" placeholder="e.g. Project Screenshot" {...form.register('title')} />
+              <Label htmlFor="title">{t('gallery.titleLabel')}</Label>
+              <Input id="title" placeholder={t('gallery.titlePlaceholder')} {...form.register('title')} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Input id="category" placeholder="e.g. Photography, Design" {...form.register('category')} />
+              <Label htmlFor="category">{t('gallery.categoryLabel')}</Label>
+              <Input id="category" placeholder={t('gallery.categoryPlaceholder')} {...form.register('category')} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t('gallery.descriptionLabel')}</Label>
               <Textarea
                 id="description"
-                placeholder="Brief description of this image..."
+                placeholder={t('gallery.descriptionPlaceholder')}
                 rows={2}
                 {...form.register('description')}
               />
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
+                {t('gallery.cancelButton')}
               </Button>
               <Button
                 type="submit"
                 disabled={createGalleryItem.isPending || updateGalleryItem.isPending}
               >
                 {createGalleryItem.isPending || updateGalleryItem.isPending
-                  ? 'Saving...'
+                  ? t('gallery.savingButton')
                   : editingItem
-                    ? 'Update Image'
-                    : 'Add Image'}
+                    ? t('gallery.updateButton')
+                    : t('gallery.createButton')}
               </Button>
             </DialogFooter>
           </form>
@@ -252,9 +254,9 @@ export default function GalleryPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title="Delete Image"
-        description={`Are you sure you want to delete "${deleteTarget?.title || 'this image'}"? This action cannot be undone.`}
-        confirmLabel="Delete"
+        title={t('gallery.deleteConfirmTitle')}
+        description={t('gallery.deleteConfirmDescription', { title: deleteTarget?.title || t('gallery.imageAlt') })}
+        confirmLabel={t('gallery.deleteConfirmButton')}
         onConfirm={handleDelete}
         destructive
       />

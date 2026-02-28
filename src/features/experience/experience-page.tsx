@@ -50,10 +50,11 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { ErrorState } from "@/components/shared/error-state";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import type { Experience } from "@/types";
+import { useI18n } from "@/lib/i18n";
 
 const experienceSchema = z.object({
-  company: z.string().min(1, "Company is required"),
-  role: z.string().min(1, "Role is required"),
+  company: z.string().min(1, "experience.companyRequired"),
+  role: z.string().min(1, "experience.roleRequired"),
   startDate: z.string(),
   endDate: z.string(),
   current: z.boolean(),
@@ -186,6 +187,7 @@ function SortableExperienceCard({
 }
 
 export default function ExperiencePage() {
+  const { t } = useI18n();
   const { data: experiences, isLoading, isError, error } = useExperiences();
   const createExperience = useCreateExperience();
   const updateExperience = useUpdateExperience();
@@ -331,7 +333,7 @@ export default function ExperiencePage() {
         <PageHeader title="Experience">
           <Button disabled>
             <Plus className="mr-2 h-4 w-4" />
-            Add Experience
+            {t('experience.addButton')}
           </Button>
         </PageHeader>
         <LoadingGrid />
@@ -345,7 +347,7 @@ export default function ExperiencePage() {
         <PageHeader title="Experience">
           <Button onClick={openCreateDialog}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Experience
+            {t('experience.addButton')}
           </Button>
         </PageHeader>
         <ErrorState
@@ -357,19 +359,19 @@ export default function ExperiencePage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Experience">
+      <PageHeader title={t('experience.title')}>
         <Button onClick={openCreateDialog}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Experience
+          {t('experience.addButton')}
         </Button>
       </PageHeader>
 
       {!experiences || experiences.length === 0 ? (
         <EmptyState
           icon={Briefcase}
-          title="No experience added"
-          description="Add your work experience to build your professional timeline."
-          actionLabel="Add Experience"
+          title={t('experience.emptyState.title')}
+          description={t('experience.emptyState.description')}
+          actionLabel={t('experience.emptyState.actionLabel')}
           onAction={openCreateDialog}
         />
       ) : (
@@ -402,38 +404,38 @@ export default function ExperiencePage() {
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>
-              {editingExperience ? "Edit Experience" : "Add Experience"}
+              {editingExperience ? t('experience.editButton') : t('experience.addButton')}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="company">
-                  Company <span className="text-destructive">*</span>
+                  {t('experience.companyLabel')} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="company"
-                  placeholder="Company name"
+                  placeholder={t('experience.companyPlaceholder')}
                   {...form.register("company")}
                 />
                 {form.formState.errors.company && (
                   <p className="text-sm text-destructive">
-                    {form.formState.errors.company.message}
+                    {t(`${form.formState.errors.company.message}`)}
                   </p>
                 )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="role">
-                  Role <span className="text-destructive">*</span>
+                  {t('experience.roleLabel')} <span className="text-destructive">*</span>
                 </Label>
                 <Input
                   id="role"
-                  placeholder="Job title"
+                  placeholder={t('experience.rolePlaceholder')}
                   {...form.register("role")}
                 />
                 {form.formState.errors.role && (
                   <p className="text-sm text-destructive">
-                    {form.formState.errors.role.message}
+                    {t(`${form.formState.errors.role.message}`)}
                   </p>
                 )}
               </div>
@@ -441,7 +443,7 @@ export default function ExperiencePage() {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="startDate">Start Date</Label>
+                <Label htmlFor="startDate">{t('experience.startDateLabel')}</Label>
                 <Input
                   id="startDate"
                   type="date"
@@ -449,7 +451,7 @@ export default function ExperiencePage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="endDate">End Date</Label>
+                <Label htmlFor="endDate">{t('experience.endDateLabel')}</Label>
                 <Input
                   id="endDate"
                   type="date"
@@ -478,24 +480,24 @@ export default function ExperiencePage() {
                 )}
               />
               <Label htmlFor="current" className="cursor-pointer text-sm">
-                I currently work here
+                {t('experience.currentLabel')}
               </Label>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
+                <Label htmlFor="location">{t('experience.locationLabel')}</Label>
                 <Input
                   id="location"
-                  placeholder="City, Country"
+                  placeholder={t('experience.locationPlaceholder')}
                   {...form.register("location")}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="industryTag">Industry Tag</Label>
+                <Label htmlFor="industryTag">{t('experience.industryTagLabel')}</Label>
                 <Input
                   id="industryTag"
-                  placeholder="e.g. Technology, Finance"
+                  placeholder={t('experience.industryTagPlaceholder')}
                   {...form.register("industryTag")}
                 />
               </div>
@@ -503,11 +505,11 @@ export default function ExperiencePage() {
 
             <div className="space-y-2">
               <Label htmlFor="description">
-                Description (one bullet per line)
+                {t('experience.descriptionLabel')}
               </Label>
               <Textarea
                 id="description"
-                placeholder={"Led a team of 5 engineers\nDelivered project on time\nImproved performance by 40%"}
+                placeholder={t('experience.descriptionPlaceholder')}
                 rows={5}
                 {...form.register("description")}
               />
@@ -519,7 +521,7 @@ export default function ExperiencePage() {
                 variant="outline"
                 onClick={() => setDialogOpen(false)}
               >
-                Cancel
+                {t('experience.cancelButton')}
               </Button>
               <Button
                 type="submit"
@@ -528,10 +530,10 @@ export default function ExperiencePage() {
                 }
               >
                 {createExperience.isPending || updateExperience.isPending
-                  ? "Saving..."
+                  ? t('experience.saving')
                   : editingExperience
-                    ? "Update Experience"
-                    : "Create Experience"}
+                    ? t('experience.updateExperience')
+                    : t('experience.createExperience')}
               </Button>
             </DialogFooter>
           </form>
@@ -543,8 +545,8 @@ export default function ExperiencePage() {
         onOpenChange={(open) => {
           if (!open) setDeleteTarget(null);
         }}
-        title="Delete Experience"
-        description={`Are you sure you want to delete your "${deleteTarget?.role}" position at "${deleteTarget?.company}"? This action cannot be undone.`}
+        title={t('experience.deleteConfirmTitle')}
+        description={t('experience.deleteConfirmDescription', { role: deleteTarget?.role || '', company: deleteTarget?.company || '' })}
         onConfirm={handleDelete}
         destructive
       />

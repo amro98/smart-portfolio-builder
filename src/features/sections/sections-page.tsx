@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import { usePortfolio, useUpdatePortfolio } from '@/lib/query/hooks';
 import { SECTION_LABELS } from '@/lib/constants';
+import { useI18n } from '@/lib/i18n';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -57,9 +58,10 @@ interface SortableItemProps {
   id: SectionId;
   isVisible: boolean;
   onToggleVisibility: (id: SectionId) => void;
+  t: (key: string) => string;
 }
 
-function SortableItem({ id, isVisible, onToggleVisibility }: SortableItemProps) {
+function SortableItem({ id, isVisible, onToggleVisibility, t }: SortableItemProps) {
   const {
     attributes,
     listeners,
@@ -97,7 +99,7 @@ function SortableItem({ id, isVisible, onToggleVisibility }: SortableItemProps) 
         <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
 
-      <span className="flex-1 text-sm font-medium">{SECTION_LABELS[id]}</span>
+      <span className="flex-1 text-sm font-medium">{t(`sections.${id}`)}</span>
 
       <Badge
         variant={isVisible ? 'default' : 'secondary'}
@@ -107,7 +109,7 @@ function SortableItem({ id, isVisible, onToggleVisibility }: SortableItemProps) 
             : 'bg-gray-100 text-gray-500 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-400'
         )}
       >
-        {isVisible ? 'Visible' : 'Hidden'}
+        {isVisible ? t('sections.visible') : t('sections.hidden')}
       </Badge>
 
       <Button
@@ -129,6 +131,7 @@ function SortableItem({ id, isVisible, onToggleVisibility }: SortableItemProps) 
 export default function SectionsPage() {
   const { data: portfolio, isLoading } = usePortfolio();
   const updatePortfolio = useUpdatePortfolio();
+  const { t } = useI18n();
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -167,14 +170,14 @@ export default function SectionsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Section Order"
-        description="Drag and drop to reorder sections on your portfolio"
+        title={t('sections.pageTitle')}
+        description={t('sections.pageDescription')}
       />
 
       <Card className="p-4">
         <div className="mb-3 flex items-center gap-2 text-sm text-muted-foreground">
           <Info className="h-4 w-4" />
-          <span>Drag sections to reorder how they appear on your portfolio. Toggle visibility to show or hide sections.</span>
+          <span>{t('sections.helpText')}</span>
         </div>
 
         <DndContext
@@ -193,6 +196,7 @@ export default function SectionsPage() {
                   id={sectionId}
                   isVisible={sectionVisibility[sectionId]}
                   onToggleVisibility={handleToggleVisibility}
+                  t={t}
                 />
               ))}
             </div>

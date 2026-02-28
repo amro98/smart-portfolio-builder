@@ -7,6 +7,7 @@ import {
   useTestimonials, useCreateTestimonial,
   useUpdateTestimonial, useDeleteTestimonial,
 } from '@/lib/query/hooks';
+import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,9 +27,9 @@ import { ErrorState } from '@/components/shared/error-state';
 import type { Testimonial } from '@/types';
 
 const testimonialSchema = z.object({
-  clientName: z.string().min(1, 'Client name is required'),
+  clientName: z.string().min(1, 'testimonials.errors.clientNameRequired'),
   role: z.string(),
-  quote: z.string().min(1, 'Quote is required'),
+  quote: z.string().min(1, 'testimonials.errors.quoteRequired'),
   avatarUrl: z.string(),
   rating: z.number().min(1).max(5),
   featured: z.boolean(),
@@ -73,6 +74,7 @@ function StarRating({
 }
 
 export default function TestimonialsPage() {
+  const { t } = useI18n();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Testimonial | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Testimonial | null>(null);
@@ -153,10 +155,10 @@ export default function TestimonialsPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Testimonials">
+        <PageHeader title={t('testimonials.title')}>
           <Button disabled>
             <Plus className="mr-2 h-4 w-4" />
-            Add Testimonial
+            {t('testimonials.addButton')}
           </Button>
         </PageHeader>
         <LoadingGrid count={6} />
@@ -167,27 +169,27 @@ export default function TestimonialsPage() {
   if (isError) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Testimonials" />
-        <ErrorState message="Failed to load testimonials" onRetry={() => refetch()} />
+        <PageHeader title={t('testimonials.title')} />
+        <ErrorState message={t('testimonials.errorLoading')} onRetry={() => refetch()} />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Testimonials" description="Manage client testimonials and reviews">
+      <PageHeader title={t('testimonials.title')} description={t('testimonials.headerDescription')}>
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Testimonial
+          {t('testimonials.addButton')}
         </Button>
       </PageHeader>
 
       {testimonials && testimonials.length === 0 ? (
         <EmptyState
           icon={MessageSquare}
-          title="No testimonials yet"
-          description="Add client testimonials to build trust and showcase your reputation."
-          actionLabel="Add Testimonial"
+          title={t('testimonials.emptyState.title')}
+          description={t('testimonials.emptyState.description')}
+          actionLabel={t('testimonials.emptyState.actionLabel')}
           onAction={openCreate}
         />
       ) : (
@@ -212,7 +214,7 @@ export default function TestimonialsPage() {
                       <p className="truncate text-sm font-semibold">{item.clientName}</p>
                       {item.featured && (
                         <Badge variant="secondary" className="shrink-0 text-xs">
-                          Featured
+                          {t('testimonials.featuredBadge')}
                         </Badge>
                       )}
                     </div>
@@ -230,11 +232,11 @@ export default function TestimonialsPage() {
                 <div className="flex items-center gap-2 border-t pt-3">
                   <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
                     <Pencil className="mr-1 h-3.5 w-3.5" />
-                    Edit
+                    {t('testimonials.actions.edit')}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(item)}>
                     <Trash2 className="mr-1 h-3.5 w-3.5" />
-                    Delete
+                    {t('testimonials.actions.delete')}
                   </Button>
                 </div>
               </CardContent>
@@ -246,39 +248,39 @@ export default function TestimonialsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingItem ? 'Edit Testimonial' : 'Add Testimonial'}</DialogTitle>
+            <DialogTitle>{editingItem ? t('testimonials.editButton') : t('testimonials.addButton')}</DialogTitle>
             <DialogDescription>
               {editingItem
-                ? 'Update the details for this testimonial.'
-                : 'Add a new client testimonial.'}
+                ? t('testimonials.form.editDescription')
+                : t('testimonials.form.createDescription')}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="clientName">Client Name</Label>
-              <Input id="clientName" placeholder="e.g. Jane Smith" {...form.register('clientName')} />
+              <Label htmlFor="clientName">{t('testimonials.clientNameLabel')}</Label>
+              <Input id="clientName" placeholder={t('testimonials.clientNamePlaceholder')} {...form.register('clientName')} />
               {form.formState.errors.clientName && (
-                <p className="text-sm text-destructive">{form.formState.errors.clientName.message}</p>
+                <p className="text-sm text-destructive">{t(form.formState.errors.clientName.message as string)}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="role">Role / Company</Label>
-              <Input id="role" placeholder="e.g. CEO at Acme Inc." {...form.register('role')} />
+              <Label htmlFor="role">{t('testimonials.roleLabel')}</Label>
+              <Input id="role" placeholder={t('testimonials.rolePlaceholder')} {...form.register('role')} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="quote">Quote</Label>
+              <Label htmlFor="quote">{t('testimonials.quoteLabel')}</Label>
               <Textarea
                 id="quote"
-                placeholder="What did they say about your work?"
+                placeholder={t('testimonials.quotePlaceholder')}
                 rows={3}
                 {...form.register('quote')}
               />
               {form.formState.errors.quote && (
-                <p className="text-sm text-destructive">{form.formState.errors.quote.message}</p>
+                <p className="text-sm text-destructive">{t(form.formState.errors.quote.message as string)}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label>Rating</Label>
+              <Label>{t('testimonials.ratingLabel')}</Label>
               <Controller
                 name="rating"
                 control={form.control}
@@ -289,8 +291,8 @@ export default function TestimonialsPage() {
             </div>
             <div className="flex items-center justify-between rounded-lg border p-3">
               <div>
-                <Label htmlFor="featured" className="cursor-pointer">Featured</Label>
-                <p className="text-xs text-muted-foreground">Highlight this testimonial on your portfolio</p>
+                <Label htmlFor="featured" className="cursor-pointer">{t('testimonials.featuredLabel')}</Label>
+                <p className="text-xs text-muted-foreground">{t('testimonials.featuredDescription')}</p>
               </div>
               <Controller
                 name="featured"
@@ -306,17 +308,17 @@ export default function TestimonialsPage() {
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
+                {t('testimonials.cancelButton')}
               </Button>
               <Button
                 type="submit"
                 disabled={createTestimonial.isPending || updateTestimonial.isPending}
               >
                 {createTestimonial.isPending || updateTestimonial.isPending
-                  ? 'Saving...'
+                  ? t('testimonials.savingButton')
                   : editingItem
-                    ? 'Update Testimonial'
-                    : 'Add Testimonial'}
+                    ? t('testimonials.updateButton')
+                    : t('testimonials.createButton')}
               </Button>
             </DialogFooter>
           </form>
@@ -326,9 +328,9 @@ export default function TestimonialsPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title="Delete Testimonial"
-        description={`Are you sure you want to delete the testimonial from "${deleteTarget?.clientName}"? This action cannot be undone.`}
-        confirmLabel="Delete"
+        title={t('testimonials.deleteConfirmTitle')}
+        description={t('testimonials.deleteConfirmDescription', { name: deleteTarget?.clientName || '' })}
+        confirmLabel={t('testimonials.deleteConfirmButton')}
         onConfirm={handleDelete}
         destructive
       />

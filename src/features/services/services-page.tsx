@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Plus, Pencil, Trash2, Coins, Clock, DollarSign } from 'lucide-react';
 import { useServices, useCreateService, useUpdateService, useDeleteService } from '@/lib/query/hooks';
+import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,8 +23,8 @@ import { ErrorState } from '@/components/shared/error-state';
 import type { Service } from '@/types';
 
 const serviceSchema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  description: z.string().min(1, 'Description is required'),
+  title: z.string().min(1, 'services.titleRequired'),
+  description: z.string().min(1, 'services.descriptionRequired'),
   priceLabel: z.string(),
   duration: z.string(),
   ctaLabel: z.string(),
@@ -33,6 +34,7 @@ const serviceSchema = z.object({
 type ServiceFormValues = z.infer<typeof serviceSchema>;
 
 export default function ServicesPage() {
+  const { t } = useI18n();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingService, setEditingService] = useState<Service | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Service | null>(null);
@@ -104,10 +106,10 @@ export default function ServicesPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Services">
+        <PageHeader title={t('services.title')}>
           <Button disabled>
             <Plus className="mr-2 h-4 w-4" />
-            Add Service
+            {t('services.addButton')}
           </Button>
         </PageHeader>
         <LoadingGrid count={6} />
@@ -118,27 +120,27 @@ export default function ServicesPage() {
   if (isError) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Services" />
-        <ErrorState message="Failed to load services" onRetry={() => refetch()} />
+        <PageHeader title={t('services.title')} />
+        <ErrorState message={t('services.errorLoading')} onRetry={() => refetch()} />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Services" description="Manage the services you offer">
+      <PageHeader title={t('services.title')} description={t('services.headerDescription')}>
         <Button onClick={openCreate}>
           <Plus className="mr-2 h-4 w-4" />
-          Add Service
+          {t('services.addButton')}
         </Button>
       </PageHeader>
 
       {services && services.length === 0 ? (
         <EmptyState
           icon={Coins}
-          title="No services yet"
-          description="Add your first service to showcase what you offer to clients."
-          actionLabel="Add Service"
+          title={t('services.emptyState.title')}
+          description={t('services.emptyState.description')}
+          actionLabel={t('services.emptyState.actionLabel')}
           onAction={openCreate}
         />
       ) : (
@@ -175,11 +177,11 @@ export default function ServicesPage() {
               <CardFooter className="gap-2 border-t pt-4">
                 <Button variant="ghost" size="sm" onClick={() => openEdit(service)}>
                   <Pencil className="mr-1 h-3.5 w-3.5" />
-                  Edit
+                  {t('services.actions.edit')}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(service)}>
                   <Trash2 className="mr-1 h-3.5 w-3.5" />
-                  Delete
+                  {t('services.actions.delete')}
                 </Button>
               </CardFooter>
             </Card>
@@ -190,66 +192,66 @@ export default function ServicesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingService ? 'Edit Service' : 'Add Service'}</DialogTitle>
+            <DialogTitle>{editingService ? t('services.editButton') : t('services.addButton')}</DialogTitle>
             <DialogDescription>
               {editingService
-                ? 'Update the details for this service.'
-                : 'Fill in the details to add a new service.'}
+                ? t('services.form.editDescription')
+                : t('services.form.createDescription')}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input id="title" placeholder="e.g. Web Development" {...form.register('title')} />
+              <Label htmlFor="title">{t('services.titleLabel')}</Label>
+              <Input id="title" placeholder={t('services.titlePlaceholder')} {...form.register('title')} />
               {form.formState.errors.title && (
-                <p className="text-sm text-destructive">{form.formState.errors.title.message}</p>
+                <p className="text-sm text-destructive">{t(form.formState.errors.title.message as string)}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description">{t('services.descriptionLabel')}</Label>
               <Textarea
                 id="description"
-                placeholder="Describe what this service includes..."
+                placeholder={t('services.descriptionPlaceholder')}
                 rows={3}
                 {...form.register('description')}
               />
               {form.formState.errors.description && (
-                <p className="text-sm text-destructive">{form.formState.errors.description.message}</p>
+                <p className="text-sm text-destructive">{t(form.formState.errors.description.message as string)}</p>
               )}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="priceLabel">Price Label</Label>
-                <Input id="priceLabel" placeholder="e.g. From $500" {...form.register('priceLabel')} />
+                <Label htmlFor="priceLabel">{t('services.priceLabelLabel')}</Label>
+                <Input id="priceLabel" placeholder={t('services.priceLabelPlaceholder')} {...form.register('priceLabel')} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="duration">Duration</Label>
-                <Input id="duration" placeholder="e.g. 2-4 weeks" {...form.register('duration')} />
+                <Label htmlFor="duration">{t('services.durationLabel')}</Label>
+                <Input id="duration" placeholder={t('services.durationPlaceholder')} {...form.register('duration')} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="ctaLabel">CTA Label</Label>
-                <Input id="ctaLabel" placeholder="e.g. Get Started" {...form.register('ctaLabel')} />
+                <Label htmlFor="ctaLabel">{t('services.ctaLabelLabel')}</Label>
+                <Input id="ctaLabel" placeholder={t('services.ctaLabelPlaceholder')} {...form.register('ctaLabel')} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="ctaLink">CTA Link</Label>
-                <Input id="ctaLink" placeholder="e.g. https://..." {...form.register('ctaLink')} />
+                <Label htmlFor="ctaLink">{t('services.ctaLinkLabel')}</Label>
+                <Input id="ctaLink" placeholder={t('services.ctaLinkPlaceholder')} {...form.register('ctaLink')} />
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
+                {t('services.cancelButton')}
               </Button>
               <Button
                 type="submit"
                 disabled={createService.isPending || updateService.isPending}
               >
                 {createService.isPending || updateService.isPending
-                  ? 'Saving...'
+                  ? t('services.savingButton')
                   : editingService
-                    ? 'Update Service'
-                    : 'Add Service'}
+                    ? t('services.updateButton')
+                    : t('services.createButton')}
               </Button>
             </DialogFooter>
           </form>
@@ -259,9 +261,9 @@ export default function ServicesPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
-        title="Delete Service"
-        description={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
-        confirmLabel="Delete"
+        title={t('services.deleteConfirmTitle')}
+        description={t('services.deleteConfirmDescription', { title: deleteTarget?.title || '' })}
+        confirmLabel={t('services.deleteConfirmButton')}
         onConfirm={handleDelete}
         destructive
       />

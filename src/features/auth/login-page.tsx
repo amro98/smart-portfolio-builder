@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { useI18n } from '@/lib/i18n';
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Layers, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
@@ -20,6 +21,7 @@ import { authApi } from "@/lib/api/client";
 export default function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAuthStore();
+  const { t } = useI18n();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,14 +34,14 @@ export default function LoginPage() {
   function validate(): boolean {
     const next: { email?: string; password?: string } = {};
     if (!email.trim()) {
-      next.email = "Email is required";
+      next.email = t('auth.login.errors.email.required');
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      next.email = "Enter a valid email address";
+      next.email = t('auth.login.errors.email.invalid');
     }
     if (!password) {
-      next.password = "Password is required";
+      next.password = t('auth.login.errors.password.required');
     } else if (password.length < 6) {
-      next.password = "Password must be at least 6 characters";
+      next.password = t('auth.login.errors.password.min');
     }
     setErrors(next);
     return Object.keys(next).length === 0;
@@ -53,7 +55,7 @@ export default function LoginPage() {
     try {
       const response = await authApi.login(email, password);
       login(response.user, response.token);
-      toast.success("Welcome back!");
+      toast.success(t('auth.login.toast.welcome'));
       navigate("/dashboard");
     } catch (err: unknown) {
       const message =
@@ -81,20 +83,18 @@ export default function LoginPage() {
                     <Layers className="h-6 w-6 text-white" />
                   </div>
                   <span className="text-xl font-semibold tracking-tight">
-                    Smart Portfolio Builder
+                    {t('auth.login.brand')}
                   </span>
                 </div>
                 <h2 className="text-3xl font-bold leading-tight mb-4">
-                  Build portfolios that stand out.
+                  {t('auth.login.marketing.heading')}
                 </h2>
                 <p className="text-white/80 text-base leading-relaxed">
-                  Create stunning, professional portfolios in minutes. Showcase
-                  your work with beautifully designed templates and powerful
-                  customization tools.
+                  {t('auth.login.marketing.description')}
                 </p>
               </div>
               <p className="text-sm text-white/60">
-                Trusted by over 50,000 professionals worldwide.
+                {t('auth.login.trusted')}
               </p>
             </div>
 
@@ -104,16 +104,16 @@ export default function LoginPage() {
                   <Layers className="h-5 w-5 text-white" />
                 </div>
                 <span className="text-lg font-semibold text-foreground">
-                  Smart Portfolio Builder
+                  {t('auth.login.brand')}
                 </span>
               </div>
 
               <CardHeader className="p-0 mb-8">
                 <CardTitle className="text-2xl font-bold text-foreground">
-                  Sign in
+                  {t('auth.login.title')}
                 </CardTitle>
                 <CardDescription className="text-muted-foreground mt-1">
-                  Enter your credentials to access your account
+                  {t('auth.login.description')}
                 </CardDescription>
               </CardHeader>
 
@@ -121,12 +121,12 @@ export default function LoginPage() {
                 <CardContent className="p-0 space-y-5">
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-foreground">
-                      Email
+                      {t('auth.login.emailLabel')}
                     </Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="you@example.com"
+                      placeholder={t('auth.login.emailPlaceholder')}
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
@@ -144,20 +144,20 @@ export default function LoginPage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label htmlFor="password" className="text-foreground">
-                        Password
+                        {t('auth.login.passwordLabel')}
                       </Label>
                       <Link
                         to="/forgot-password"
                         className="text-sm text-teal-600 hover:text-teal-700 transition-colors font-medium"
                       >
-                        Forgot password?
+                        {t('auth.login.forgotPassword')}
                       </Link>
                     </div>
                     <div className="relative">
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
+                        placeholder={t('auth.login.passwordPlaceholder')}
                         value={password}
                         onChange={(e) => {
                           setPassword(e.target.value);
@@ -201,18 +201,18 @@ export default function LoginPage() {
                       <Loader2 className="h-5 w-5 animate-spin" />
                     ) : (
                       <>
-                        Sign in
-                        <ArrowRight className="ml-2 h-4 w-4" />
+                        {t('auth.login.submit')}
+                        <ArrowRight className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 rtl:rotate-180" />
                       </>
                     )}
                   </Button>
                   <p className="text-sm text-muted-foreground text-center">
-                    Don&apos;t have an account?{" "}
+                    {t('auth.login.noAccount')} {" "}
                     <Link
                       to="/register"
                       className="text-teal-600 hover:text-teal-700 font-medium transition-colors"
                     >
-                      Create one
+                      {t('auth.login.createAccount')}
                     </Link>
                   </p>
                 </CardFooter>
