@@ -224,6 +224,15 @@ export default function DashboardLayout() {
     }
   }, [themeMode]);
 
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, []);
+
   const handleToggleTheme = useCallback(() => {
     setThemeMode(themeMode === 'dark' ? 'light' : 'dark');
   }, [themeMode, setThemeMode]);

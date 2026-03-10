@@ -39,9 +39,10 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { PageHeader } from '@/components/shared/page-header';
-import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import { LoadingPage } from '@/components/shared/loading-card';
 import { ErrorState } from '@/components/shared/error-state';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
+import { AppearanceLivePreview } from './components/appearance-live-preview';
 import type {
   TemplateId,
   ColorPaletteId,
@@ -67,17 +68,18 @@ const SECTION_ICONS: Record<SectionId, React.ElementType> = {
   contact: Mail,
 };
 
-const THEME_OPTIONS: { value: ThemeMode; label: string; icon: React.ElementType }[] = [
-  { value: 'light', label: 'Light', icon: Sun },
-  { value: 'dark', label: 'Dark', icon: Moon },
-  { value: 'auto', label: 'Auto', icon: Monitor },
-];
-
 export default function AppearancePage() {
   const { data: portfolio, isLoading, isError, refetch } = usePortfolio();
   const updatePortfolio = useUpdatePortfolio();
-  const { t } = useI18n();
+  const { t, dir } = useI18n();
   const [accentInput, setAccentInput] = useState('');
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+
+  const THEME_OPTIONS: { value: ThemeMode; label: string; icon: React.ElementType }[] = [
+    { value: 'light', label: t('common.light'), icon: Sun },
+    { value: 'dark', label: t('common.dark'), icon: Moon },
+    { value: 'auto', label: t('common.auto'), icon: Monitor },
+  ];
 
   const handleUpdate = useCallback(
     (data: Record<string, unknown>) => {
@@ -85,6 +87,27 @@ export default function AppearancePage() {
     },
     [updatePortfolio]
   );
+
+  const handleResetAppearance = useCallback(() => {
+    const sectionVisibility = ALL_SECTIONS.reduce((acc, section) => {
+      acc[section] = true;
+      return acc;
+    }, {} as Record<SectionId, boolean>);
+
+    handleUpdate({
+      themeMode: 'auto',
+      templateId: templateList[0]?.id,
+      colorPaletteId: colorPaletteList[0]?.id,
+      animationPresetId: animationPresetList[0]?.id,
+      fontPresetId: fontPresetList[0]?.id,
+      customAccentColor: '',
+      sectionVisibility,
+    });
+
+    setAccentInput('');
+    setResetDialogOpen(false);
+    toast.success(t('appearance.reset.success'));
+  }, [handleUpdate, t]);
 
   if (isLoading) {
     return (
@@ -129,24 +152,22 @@ export default function AppearancePage() {
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title={t('appearance.title')}
-        description={t('appearance.description')}
-      />
+      <div className="flex items-center justify-between">
+        <PageHeader
+          title={t('appearance.title')}
+          description={t('appearance.description')}
+        />
+        <Button
+          variant="outline"
+          onClick={() => setResetDialogOpen(true)}
+          className="h-10"
+        >
+          {t('appearance.reset.button')}
+        </Button>
+      </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Type className="h-5 w-5 text-muted-foreground" />
-              <CardTitle className="text-lg">{t('appearance.language.title')}</CardTitle>
-            </div>
-            <CardDescription>{t('appearance.language.description')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <LanguageSwitcher />
-          </CardContent>
-        </Card>
+        <AppearanceLivePreview portfolio={portfolio} dir={dir} />
 
         <Card>
           <CardHeader>
@@ -603,6 +624,17 @@ export default function AppearancePage() {
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={resetDialogOpen}
+        onOpenChange={setResetDialogOpen}
+        title={t('appearance.reset.dialog.title')}
+        description={t('appearance.reset.dialog.description')}
+        onConfirm={handleResetAppearance}
+        confirmLabel="appearance.reset.dialog.confirm"
+        cancelLabel="appearance.reset.dialog.cancel"
+        destructive
+      />
     </div>
   );
 }

@@ -486,6 +486,12 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     'appearance.customAccentColor.inputLabel': 'Hex Color',
     'appearance.sectionVisibility.title': 'Section Visibility',
     'appearance.sectionVisibility.description': 'Toggle which sections appear on your published portfolio',
+    'appearance.reset.button': 'Reset All Appearance',
+    'appearance.reset.dialog.title': 'Reset Appearance to Defaults',
+    'appearance.reset.dialog.description': 'Are you sure you want to reset all appearance settings to their default values? This action cannot be undone.',
+    'appearance.reset.dialog.cancel': 'Cancel',
+    'appearance.reset.dialog.confirm': 'Reset',
+    'appearance.reset.success': 'Appearance reset to defaults',
 
     // Sections page
     'sections.pageTitle': 'Section Order',
@@ -1044,6 +1050,12 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     'appearance.customAccentColor.inputLabel': 'لون Hex',
     'appearance.sectionVisibility.title': 'رؤية الأقسام',
     'appearance.sectionVisibility.description': 'تبديل الأقسام التي تظهر في بورتفوليوك المنشور',
+    'appearance.reset.button': 'إعادة تعيين المظهر',
+    'appearance.reset.dialog.title': 'إعادة تعيين المظهر إلى القيم الافتراضية',
+    'appearance.reset.dialog.description': 'هل أنت متأكد أنك تريد إعادة تعيين جميع إعدادات المظهر إلى قيمها الافتراضية؟ هذا الإجراء لا يمكن التراجع عنه.',
+    'appearance.reset.dialog.cancel': 'إلغاء',
+    'appearance.reset.dialog.confirm': 'إعادة تعيين',
+    'appearance.reset.success': 'تم إعادة تعيين المظهر إلى الإعدادات الافتراضية',
     
     // Sections page
     'sections.pageTitle': 'ترتيب الأقسام',
