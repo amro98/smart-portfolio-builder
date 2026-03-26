@@ -56,7 +56,7 @@ export default function LoginPage() {
       const response = await authApi.login(email, password);
       login(response.user, response.token);
       toast.success(t('auth.login.toast.welcome'));
-      navigate("/dashboard");
+      navigate('/portfolios');
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Login failed. Please try again.";

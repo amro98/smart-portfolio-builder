@@ -1,9 +1,18 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 import DashboardLayout from '@/app/layouts/dashboard-layout';
+import AppLayout from '@/app/layouts/app-layout';
+import PortfolioEditorLayout from '@/app/layouts/portfolio-editor-layout';
 import AuthLayout from '@/app/layouts/auth-layout';
 import LoginPage from '@/features/auth/login-page';
 import RegisterPage from '@/features/auth/register-page';
 import ForgotPasswordPage from '@/features/auth/forgot-password-page';
+import MyPortfoliosPage from '@/features/portfolios/my-portfolios-page';
+import CreatePortfolioWizardPage from '@/features/portfolios/create-portfolio-wizard-page';
+import PortfolioOverviewPage from '@/features/portfolios/portfolio-overview-page';
+import PortfolioContentProfilePage from '@/features/portfolios/portfolio-content-profile-page';
+import PortfolioAppearancePage from '@/features/portfolios/portfolio-appearance-page';
+import PortfolioPublishPage from '@/features/portfolios/portfolio-publish-page';
+import PlaceholderShellPage from '@/features/portfolios/placeholder-shell-page';
 import OnboardingPage from '@/features/onboarding/onboarding-page';
 import OverviewPage from '@/features/dashboard/overview-page';
 import ProfilePage from '@/features/dashboard/profile-page';
@@ -19,12 +28,12 @@ import SectionsPage from '@/features/sections/sections-page';
 import PublishPage from '@/features/publish/publish-page';
 import PreviewPage from '@/features/preview/preview-page';
 import PublicPortfolioPage from '@/features/public-portfolio/public-portfolio-page';
-import { AuthGuard, GuestGuard } from './protected-route';
+import { AuthAwareRedirect, AuthGuard, GuestGuard } from './protected-route';
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <Navigate to="/login" replace />,
+    element: <AuthAwareRedirect />,
   },
   {
     element: (
@@ -45,6 +54,44 @@ export const router = createBrowserRouter([
         <OnboardingPage />
       </AuthGuard>
     ),
+  },
+  {
+    element: (
+      <AuthGuard>
+        <AppLayout />
+      </AuthGuard>
+    ),
+    children: [
+      { path: '/portfolios', element: <MyPortfoliosPage /> },
+      { path: '/portfolios/new', element: <CreatePortfolioWizardPage /> },
+      {
+        path: '/portfolios/:portfolioId',
+        element: <PortfolioEditorLayout />,
+        children: [
+          { index: true, element: <Navigate to="overview" replace /> },
+          { path: 'overview', element: <PortfolioOverviewPage /> },
+          { path: 'content/profile', element: <PortfolioContentProfilePage /> },
+          { path: 'appearance', element: <PortfolioAppearancePage /> },
+          { path: 'publish', element: <PortfolioPublishPage /> },
+        ],
+      },
+      {
+        path: '/templates',
+        element: <PlaceholderShellPage title="Templates" description="Templates catalog placeholder." />,
+      },
+      {
+        path: '/pricing',
+        element: <PlaceholderShellPage title="Pricing" description="Pricing page placeholder." />,
+      },
+      {
+        path: '/billing',
+        element: <PlaceholderShellPage title="Billing" description="Billing page placeholder." />,
+      },
+      {
+        path: '/settings',
+        element: <PlaceholderShellPage title="Settings" description="Settings page placeholder." />,
+      },
+    ],
   },
   {
     path: '/dashboard',
@@ -75,6 +122,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '*',
-    element: <Navigate to="/login" replace />,
+    element: <AuthAwareRedirect />,
   },
 ]);

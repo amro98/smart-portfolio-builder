@@ -40,10 +40,21 @@ export function GuestGuard({ children }: { children: React.ReactNode }) {
   }
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/portfolios" replace />;
   }
 
   return <>{children}</>;
+}
+
+export function AuthAwareRedirect() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const hasHydrated = useAuthStore((s) => s._hasHydrated);
+
+  if (!hasHydrated) {
+    return <SplashLoader />;
+  }
+
+  return <Navigate to={isAuthenticated ? '/portfolios' : '/login'} replace />;
 }
 
 export { AuthGuard as ProtectedRoute };
