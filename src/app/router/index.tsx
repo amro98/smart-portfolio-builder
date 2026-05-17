@@ -8,10 +8,6 @@ import RegisterPage from '@/features/auth/register-page';
 import ForgotPasswordPage from '@/features/auth/forgot-password-page';
 import MyPortfoliosPage from '@/features/portfolios/my-portfolios-page';
 import CreatePortfolioWizardPage from '@/features/portfolios/create-portfolio-wizard-page';
-import PortfolioOverviewPage from '@/features/portfolios/portfolio-overview-page';
-import PortfolioContentProfilePage from '@/features/portfolios/portfolio-content-profile-page';
-import PortfolioAppearancePage from '@/features/portfolios/portfolio-appearance-page';
-import PortfolioPublishPage from '@/features/portfolios/portfolio-publish-page';
 import PlaceholderShellPage from '@/features/portfolios/placeholder-shell-page';
 import OnboardingPage from '@/features/onboarding/onboarding-page';
 import OverviewPage from '@/features/dashboard/overview-page';
@@ -69,10 +65,18 @@ export const router = createBrowserRouter([
         element: <PortfolioEditorLayout />,
         children: [
           { index: true, element: <Navigate to="overview" replace /> },
-          { path: 'overview', element: <PortfolioOverviewPage /> },
-          { path: 'content/profile', element: <PortfolioContentProfilePage /> },
-          { path: 'appearance', element: <PortfolioAppearancePage /> },
-          { path: 'publish', element: <PortfolioPublishPage /> },
+          { path: 'overview', element: <OverviewPage /> },
+          { path: 'profile', element: <ProfilePage /> },
+          { path: 'projects', element: <ProjectsPage /> },
+          { path: 'experience', element: <ExperiencePage /> },
+          { path: 'skills', element: <SkillsPage /> },
+          { path: 'services', element: <ServicesPage /> },
+          { path: 'certifications', element: <CertificationsPage /> },
+          { path: 'testimonials', element: <TestimonialsPage /> },
+          { path: 'gallery', element: <GalleryPage /> },
+          { path: 'appearance', element: <AppearancePage /> },
+          { path: 'sections', element: <SectionsPage /> },
+          { path: 'publish', element: <PublishPage /> },
         ],
       },
       {

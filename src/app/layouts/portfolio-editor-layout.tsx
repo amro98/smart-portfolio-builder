@@ -20,8 +20,16 @@ export default function PortfolioEditorLayout() {
 
   const editorNavItems = [
     { label: 'Overview', to: `/portfolios/${safePortfolioId}/overview` },
-    { label: 'Content', to: `/portfolios/${safePortfolioId}/content/profile` },
+    { label: 'Profile', to: `/portfolios/${safePortfolioId}/profile` },
+    { label: 'Projects', to: `/portfolios/${safePortfolioId}/projects` },
+    { label: 'Experience', to: `/portfolios/${safePortfolioId}/experience` },
+    { label: 'Skills', to: `/portfolios/${safePortfolioId}/skills` },
+    { label: 'Services', to: `/portfolios/${safePortfolioId}/services` },
+    { label: 'Certifications', to: `/portfolios/${safePortfolioId}/certifications` },
+    { label: 'Testimonials', to: `/portfolios/${safePortfolioId}/testimonials` },
+    { label: 'Gallery', to: `/portfolios/${safePortfolioId}/gallery` },
     { label: 'Appearance', to: `/portfolios/${safePortfolioId}/appearance` },
+    { label: 'Sections', to: `/portfolios/${safePortfolioId}/sections` },
     { label: 'Publish', to: `/portfolios/${safePortfolioId}/publish` },
   ];
 

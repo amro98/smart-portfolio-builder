@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Layers, Search, Sun, Moon, Briefcase, LayoutTemplate, BadgeDollarSign, CreditCard, Settings, LogOut } from 'lucide-react';
@@ -57,6 +57,15 @@ export default function AppLayout() {
     toast.success(t('toast.signedOut'));
     navigate('/login');
   }, [logout, navigate, t]);
+
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = prevOverflow;
+    };
+  }, []);
 
   return (
     <div className="flex h-screen bg-background text-foreground">

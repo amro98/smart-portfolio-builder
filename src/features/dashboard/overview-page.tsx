@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   FolderOpen,
@@ -69,6 +69,7 @@ const MOCK_ACTIVITY = [
 
 export default function OverviewPage() {
   const { t } = useI18n();
+  const { portfolioId } = useParams();
   const {
     data: portfolio,
     isLoading: portfolioLoading,
@@ -133,6 +134,7 @@ export default function OverviewPage() {
   }
 
   const projectCount = (projects as unknown[])?.length ?? 0;
+  const editorBasePath = portfolioId ? `/portfolios/${portfolioId}` : '/dashboard';
 
   const stats = [
     {
@@ -168,12 +170,12 @@ export default function OverviewPage() {
     {
       label: 'overview.portfolio.quickActions.actions.addProject',
       icon: Plus,
-      to: '/dashboard/projects',
+      to: `${editorBasePath}/projects`,
     },
     {
       label: 'overview.portfolio.quickActions.actions.editProfile',
       icon: UserCog,
-      to: '/dashboard/profile',
+      to: `${editorBasePath}/profile`,
     },
     {
       label: 'overview.portfolio.quickActions.actions.preview',
@@ -183,7 +185,7 @@ export default function OverviewPage() {
     {
       label: 'overview.portfolio.quickActions.actions.publish',
       icon: Send,
-      to: '/dashboard/settings',
+      to: `${editorBasePath}/publish`,
     },
   ];
 
