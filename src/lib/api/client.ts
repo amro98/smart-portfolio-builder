@@ -46,26 +46,31 @@ export const authApi = {
 };
 
 export const portfolioApi = {
-  async get(): Promise<Portfolio> {
+  async get(portfolioId?: string): Promise<Portfolio> {
     await delay(MOCK_DELAY);
-    const p = db.getPortfolio();
+    const p = portfolioId ? db.getPortfolioById(portfolioId) : db.getPortfolio();
     if (!p) throw new Error('Portfolio not found');
     return p;
   },
 
-  async update(data: Partial<Portfolio>): Promise<Portfolio> {
+  async update(data: Partial<Portfolio>, portfolioId?: string): Promise<Portfolio> {
     await delay(MOCK_DELAY);
+    if (portfolioId) return db.updatePortfolioById(portfolioId, data);
     return db.updatePortfolio(data);
   },
 
-  async publish(): Promise<Portfolio> {
+  async publish(portfolioId?: string): Promise<Portfolio> {
     await delay(MOCK_DELAY);
-    return db.updatePortfolio({ isPublished: true, publishedAt: new Date().toISOString() });
+    const patch = { isPublished: true, publishedAt: new Date().toISOString() };
+    if (portfolioId) return db.updatePortfolioById(portfolioId, patch);
+    return db.updatePortfolio(patch);
   },
 
-  async unpublish(): Promise<Portfolio> {
+  async unpublish(portfolioId?: string): Promise<Portfolio> {
     await delay(MOCK_DELAY);
-    return db.updatePortfolio({ isPublished: false });
+    const patch = { isPublished: false };
+    if (portfolioId) return db.updatePortfolioById(portfolioId, patch);
+    return db.updatePortfolio(patch);
   },
 
   async getPublic(slug: string): Promise<PublicPortfolioData | null> {

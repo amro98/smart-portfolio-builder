@@ -3,13 +3,16 @@ import { Link, NavLink, Outlet, useParams } from 'react-router-dom';
 import { Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePortfolio } from '@/lib/query/hooks';
+import { PortfolioIdProvider } from '@/app/providers/portfolio-id-provider';
 import { cn } from '@/lib/utils';
 
 export default function PortfolioEditorLayout() {
   const { portfolioId } = useParams();
-  const { data: portfolio } = usePortfolio();
+  const safePortfolioId = portfolioId ?? 'portfolio-1';
 
-  const safePortfolioId = portfolioId ?? 'unknown';
+  // Pass the route param explicitly so the layout's own query is portfolio-aware
+  // even though it sits above the PortfolioIdProvider that wraps the Outlet.
+  const { data: portfolio } = usePortfolio(safePortfolioId);
 
   const previewHref = useMemo(() => {
     if (portfolio?.slug) {
@@ -65,7 +68,9 @@ export default function PortfolioEditorLayout() {
           </Button>
         </div>
         <div className="p-4 md:p-5">
-          <Outlet />
+          <PortfolioIdProvider portfolioId={safePortfolioId}>
+            <Outlet />
+          </PortfolioIdProvider>
         </div>
       </section>
     </div>

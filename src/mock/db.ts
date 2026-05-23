@@ -12,6 +12,16 @@ import {
 
 // TODO: Replace this entire mock database with real Express + Prisma API calls
 
+// Allows friendly route IDs to map to the underlying data IDs.
+// e.g. navigating to /portfolios/portfolio-dev/overview resolves to portfolio-1.
+const PORTFOLIO_ID_ALIASES: Readonly<Record<string, string>> = {
+  'portfolio-dev': 'portfolio-1',
+};
+
+function resolvePortfolioId(id: string): string {
+  return PORTFOLIO_ID_ALIASES[id] ?? id;
+}
+
 class MockDB {
   private users: User[] = [...mockUsers];
   private portfolios: Portfolio[] = [mockPortfolio, mockDoctorPortfolio, mockPhotographerPortfolio];
@@ -89,9 +99,23 @@ class MockDB {
     return this.portfolios.find((p) => p.id === this.currentPortfolioId);
   }
 
+  // Look up any portfolio by explicit ID (supports aliases like 'portfolio-dev').
+  getPortfolioById(id: string): Portfolio | undefined {
+    return this.portfolios.find((p) => p.id === resolvePortfolioId(id));
+  }
+
   updatePortfolio(data: Partial<Portfolio>): Portfolio {
     const idx = this.portfolios.findIndex((p) => p.id === this.currentPortfolioId);
     if (idx === -1) throw new Error('Portfolio not found');
+    this.portfolios[idx] = { ...this.portfolios[idx], ...data, updatedAt: new Date().toISOString() };
+    return this.portfolios[idx];
+  }
+
+  // Update any portfolio by explicit ID (supports aliases).
+  updatePortfolioById(id: string, data: Partial<Portfolio>): Portfolio {
+    const resolved = resolvePortfolioId(id);
+    const idx = this.portfolios.findIndex((p) => p.id === resolved);
+    if (idx === -1) throw new Error(`Portfolio not found: ${id}`);
     this.portfolios[idx] = { ...this.portfolios[idx], ...data, updatedAt: new Date().toISOString() };
     return this.portfolios[idx];
   }

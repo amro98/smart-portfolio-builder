@@ -6,23 +6,30 @@ import {
 import { useI18n } from '@/lib/i18n';
 import type { Portfolio, Project, Experience, Skill, Service, Certification, Testimonial, GalleryItem } from '@/types';
 import { toast } from 'sonner';
+import { useCurrentPortfolioId } from '@/app/providers/portfolio-id-provider';
 
 // TODO: Replace mock API calls with real Express API integration
 
-export function usePortfolio() {
+// portfolioId parameter takes precedence; falls back to the nearest PortfolioIdProvider
+// context value (default: 'portfolio-1') so legacy /dashboard/* routes keep working.
+export function usePortfolio(portfolioId?: string) {
+  const contextId = useCurrentPortfolioId();
+  const id = portfolioId ?? contextId;
   return useQuery({
-    queryKey: ['portfolio'],
-    queryFn: portfolioApi.get,
+    queryKey: ['portfolio', id],
+    queryFn: () => portfolioApi.get(id),
   });
 }
 
-export function useUpdatePortfolio() {
+export function useUpdatePortfolio(portfolioId?: string) {
+  const contextId = useCurrentPortfolioId();
+  const id = portfolioId ?? contextId;
   const qc = useQueryClient();
   const { t } = useI18n();
   return useMutation({
-    mutationFn: (data: Partial<Portfolio>) => portfolioApi.update(data),
+    mutationFn: (data: Partial<Portfolio>) => portfolioApi.update(data, id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['portfolio'] });
+      qc.invalidateQueries({ queryKey: ['portfolio', id] });
       toast.success(t('toast.portfolio.updated'));
     },
     onError: () => toast.error(t('toast.portfolio.updateFailed')),
@@ -30,24 +37,26 @@ export function useUpdatePortfolio() {
 }
 
 export function usePublishPortfolio() {
+  const id = useCurrentPortfolioId();
   const qc = useQueryClient();
   const { t } = useI18n();
   return useMutation({
-    mutationFn: portfolioApi.publish,
+    mutationFn: () => portfolioApi.publish(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['portfolio'] });
+      qc.invalidateQueries({ queryKey: ['portfolio', id] });
       toast.success(t('toast.portfolio.published'));
     },
   });
 }
 
 export function useUnpublishPortfolio() {
+  const id = useCurrentPortfolioId();
   const qc = useQueryClient();
   const { t } = useI18n();
   return useMutation({
-    mutationFn: portfolioApi.unpublish,
+    mutationFn: () => portfolioApi.unpublish(id),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['portfolio'] });
+      qc.invalidateQueries({ queryKey: ['portfolio', id] });
       toast.success(t('toast.portfolio.unpublished'));
     },
   });
