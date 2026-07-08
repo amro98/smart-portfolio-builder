@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import { healthRouter } from "./modules/health/health.router";
 import { notFoundHandler } from "./middlewares/notFound";
 import { errorHandler } from "./middlewares/errorHandler";
+import { authRouter } from "./modules/auth/auth.router";
 
 export function createApp() {
   const app = express();
@@ -27,6 +28,8 @@ export function createApp() {
   app.get("/", (_req, res) => res.json({ name: "SPB API", version: "v1" }));
 
   app.use("/health", healthRouter);
+
+  app.use("/auth", authRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
