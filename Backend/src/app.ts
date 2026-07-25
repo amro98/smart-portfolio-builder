@@ -9,6 +9,7 @@ import { notFoundHandler } from "./middlewares/notFound";
 import { errorHandler } from "./middlewares/errorHandler";
 import { authRouter } from "./modules/auth/auth.router";
 import { portfoliosRouter } from "./modules/portfolios/portfolios.router";
+import { publicRouter } from "./modules/public/public.router";
 
 export function createApp() {
   const app = express();
@@ -31,6 +32,7 @@ export function createApp() {
   app.use("/health", healthRouter);
   app.use("/auth", authRouter);
   app.use("/portfolios", portfoliosRouter);
+  app.use("/public", publicRouter);
 
   app.use(notFoundHandler);
   app.use(errorHandler);
