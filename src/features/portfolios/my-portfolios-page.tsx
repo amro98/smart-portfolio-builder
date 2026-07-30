@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Copy, ExternalLink, Globe, Pencil, Plus, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -6,10 +6,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader } from '@/components/shared/page-header';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
+import { ErrorState } from '@/components/shared/error-state';
+import { LoadingGrid } from '@/components/shared/loading-card';
+import { useDeletePortfolio, usePortfolios } from '@/lib/query/hooks';
+import type { BackendPortfolio } from '@/types';
 
 type PortfolioStatus = 'draft' | 'published';
 
-interface MockPortfolio {
+interface PortfolioCard {
   id: string;
   name: string;
   slug: string;
@@ -18,32 +22,30 @@ interface MockPortfolio {
   updatedAt: string; // ISO date string
 }
 
-const INITIAL_PORTFOLIOS: MockPortfolio[] = [
-  {
-    id: 'portfolio-1',
-    name: 'Alex Morgan Portfolio',
-    slug: 'alex-morgan',
-    profession: 'Full-Stack Developer',
-    status: 'published',
-    updatedAt: '2026-05-15T10:30:00Z',
-  },
-  {
-    id: 'portfolio-doc',
-    name: 'Dr. Sarah Chen Portfolio',
-    slug: 'dr-sarah-chen',
-    profession: 'Medical Researcher',
-    status: 'draft',
-    updatedAt: '2026-05-10T14:00:00Z',
-  },
-  {
-    id: 'portfolio-photo',
-    name: 'Jamie Rodriguez Portfolio',
-    slug: 'jamie-rodriguez',
-    profession: 'Freelance Photographer',
-    status: 'published',
-    updatedAt: '2026-05-01T09:15:00Z',
-  },
-];
+function getProfessionLabel(data: unknown): string {
+  if (!data || typeof data !== 'object') return 'Portfolio';
+
+  const portfolioData = data as Record<string, unknown>;
+  const value =
+    typeof portfolioData.title === 'string'
+      ? portfolioData.title
+      : typeof portfolioData.profession === 'string'
+        ? portfolioData.profession
+        : null;
+
+  return value?.trim() || 'Portfolio';
+}
+
+function toPortfolioCard(portfolio: BackendPortfolio): PortfolioCard {
+  return {
+    id: portfolio.id,
+    name: portfolio.name,
+    slug: portfolio.slug,
+    profession: getProfessionLabel(portfolio.data),
+    status: portfolio.status === 'PUBLISHED' ? 'published' : 'draft',
+    updatedAt: portfolio.updatedAt,
+  };
+}
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date(iso));
@@ -51,25 +53,30 @@ function formatDate(iso: string) {
 
 export default function MyPortfoliosPage() {
   const navigate = useNavigate();
-  const [portfolios, setPortfolios] = useState<MockPortfolio[]>(INITIAL_PORTFOLIOS);
+  const {
+    data: backendPortfolios = [],
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = usePortfolios();
+  const deletePortfolio = useDeletePortfolio();
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
 
-  function handleDuplicate(portfolio: MockPortfolio) {
-    const clone: MockPortfolio = {
-      ...portfolio,
-      id: `${portfolio.id}-copy-${Date.now()}`,
-      name: `${portfolio.name} (Copy)`,
-      slug: `${portfolio.slug}-copy`,
-      status: 'draft',
-      updatedAt: new Date().toISOString(),
-    };
-    setPortfolios((prev) => [...prev, clone]);
-  }
+  const portfolios = useMemo(
+    () => backendPortfolios.map(toPortfolioCard),
+    [backendPortfolios]
+  );
 
-  function handleDeleteConfirm() {
+  async function handleDeleteConfirm() {
     if (!deleteTargetId) return;
-    setPortfolios((prev) => prev.filter((p) => p.id !== deleteTargetId));
-    setDeleteTargetId(null);
+
+    try {
+      await deletePortfolio.mutateAsync(deleteTargetId);
+      setDeleteTargetId(null);
+    } catch {
+      // The mutation displays the backend error and leaves the list unchanged.
+    }
   }
 
   const deleteTarget = portfolios.find((p) => p.id === deleteTargetId);
@@ -85,7 +92,14 @@ export default function MyPortfoliosPage() {
         </Button>
       </PageHeader>
 
-      {portfolios.length === 0 ? (
+      {isLoading ? (
+        <LoadingGrid count={3} />
+      ) : isError ? (
+        <ErrorState
+          message={error instanceof Error ? error.message : 'Unable to load portfolios'}
+          onRetry={() => void refetch()}
+        />
+      ) : portfolios.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
           <p className="text-lg font-medium">No portfolios yet.</p>
           <p className="mt-1 text-sm">Click "Create New Portfolio" to get started.</p>
@@ -141,7 +155,7 @@ export default function MyPortfoliosPage() {
                   Publish
                 </Button>
 
-                <Button size="sm" variant="ghost" onClick={() => handleDuplicate(portfolio)}>
+                <Button size="sm" variant="ghost" disabled>
                   <Copy className="mr-1.5 h-3.5 w-3.5" />
                   Duplicate
                 </Button>

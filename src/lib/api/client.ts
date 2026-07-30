@@ -2,7 +2,8 @@ import { db } from '@/mock/db';
 import { delay } from '@/lib/utils';
 import type {
   Portfolio, Project, Experience, Skill, Service,
-  Certification, Testimonial, GalleryItem, AuthResponse, PublicPortfolioData
+  Certification, Testimonial, GalleryItem, AuthResponse, PublicPortfolioData,
+  BackendPortfolio,
 } from '@/types';
 
 const MOCK_DELAY = 300;
@@ -84,6 +85,17 @@ export const authApi = {
 };
 
 export const portfolioApi = {
+  async list(): Promise<BackendPortfolio[]> {
+    const response = await request<{ portfolios: BackendPortfolio[] }>('/portfolios');
+    return response.portfolios;
+  },
+
+  async remove(portfolioId: string): Promise<void> {
+    await request<{ ok: boolean }>(`/portfolios/${encodeURIComponent(portfolioId)}`, {
+      method: 'DELETE',
+    });
+  },
+
   async get(portfolioId?: string): Promise<Portfolio> {
     await delay(MOCK_DELAY);
     const p = portfolioId ? db.getPortfolioById(portfolioId) : db.getPortfolio();

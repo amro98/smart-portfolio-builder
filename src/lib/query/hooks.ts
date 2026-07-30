@@ -10,6 +10,27 @@ import { useCurrentPortfolioId } from '@/app/providers/portfolio-id-provider';
 
 // TODO: Replace mock API calls with real Express API integration
 
+const portfoliosQueryKey = ['portfolios'] as const;
+
+export function usePortfolios() {
+  return useQuery({
+    queryKey: portfoliosQueryKey,
+    queryFn: portfolioApi.list,
+  });
+}
+
+export function useDeletePortfolio() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (portfolioId: string) => portfolioApi.remove(portfolioId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: portfoliosQueryKey }),
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete portfolio');
+    },
+  });
+}
+
 // portfolioId parameter takes precedence; falls back to the nearest PortfolioIdProvider
 // context value (default: 'portfolio-1') so legacy /dashboard/* routes keep working.
 export function usePortfolio(portfolioId?: string) {

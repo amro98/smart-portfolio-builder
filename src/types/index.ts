@@ -40,6 +40,18 @@ export interface AuthResponse {
   user: User;
 }
 
+export interface BackendPortfolio {
+  id: string;
+  userId: string;
+  name: string;
+  slug: string;
+  status: 'DRAFT' | 'PUBLISHED';
+  data: unknown;
+  publishedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Portfolio {
   id: string;
   userId: string;
