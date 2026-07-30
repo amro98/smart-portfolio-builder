@@ -2,9 +2,6 @@ import { Navigate } from 'react-router-dom';
 import { useAuthStore } from '@/store';
 import { Loader2 } from 'lucide-react';
 
-// TODO: When connecting a real backend, AuthGuard should also verify
-// the token is still valid (e.g. call GET /auth/me on first load).
-
 function SplashLoader() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -18,9 +15,9 @@ function SplashLoader() {
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hasHydrated = useAuthStore((s) => s._hasHydrated);
+  const authChecked = useAuthStore((s) => s.authChecked);
 
-  if (!hasHydrated) {
+  if (!authChecked) {
     return <SplashLoader />;
   }
 
@@ -33,9 +30,9 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
 export function GuestGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hasHydrated = useAuthStore((s) => s._hasHydrated);
+  const authChecked = useAuthStore((s) => s.authChecked);
 
-  if (!hasHydrated) {
+  if (!authChecked) {
     return <SplashLoader />;
   }
 
@@ -48,9 +45,9 @@ export function GuestGuard({ children }: { children: React.ReactNode }) {
 
 export function AuthAwareRedirect() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const hasHydrated = useAuthStore((s) => s._hasHydrated);
+  const authChecked = useAuthStore((s) => s.authChecked);
 
-  if (!hasHydrated) {
+  if (!authChecked) {
     return <SplashLoader />;
   }
 

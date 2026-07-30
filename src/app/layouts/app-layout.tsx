@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { Layers, Search, Sun, Moon, Briefcase, LayoutTemplate, BadgeDollarSign, CreditCard, Settings, LogOut } from 'lucide-react';
 import { useAuthStore, useUIStore } from '@/store';
 import { useI18n } from '@/lib/i18n';
+import { authApi } from '@/lib/api/client';
 import { cn } from '@/lib/utils';
 import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import { Button } from '@/components/ui/button';
@@ -51,11 +52,16 @@ export default function AppLayout() {
     setThemeMode(themeMode === 'dark' ? 'light' : 'dark');
   }, [themeMode, setThemeMode]);
 
-  const handleSignOut = useCallback(() => {
+  const handleSignOut = useCallback(async () => {
     toast.dismiss();
-    logout();
-    toast.success(t('toast.signedOut'));
-    navigate('/login');
+    try {
+      await authApi.logout();
+      logout();
+      toast.success(t('toast.signedOut'));
+      navigate('/login');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to sign out. Please try again.');
+    }
   }, [logout, navigate, t]);
 
   useEffect(() => {

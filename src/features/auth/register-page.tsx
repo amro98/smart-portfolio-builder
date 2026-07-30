@@ -76,10 +76,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const response = await authApi.register(email, password);
-      login(
-        { ...response.user, onboardingCompleted: false },
-        response.token
-      );
+      login(response.user);
       toast.success(t('auth.register.toast.success'));
       navigate("/onboarding");
     } catch (err: unknown) {

@@ -41,6 +41,7 @@ import {
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/lib/i18n';
+import { authApi } from '@/lib/api/client';
 import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import {
   Tooltip,
@@ -237,11 +238,16 @@ export default function DashboardLayout() {
     setThemeMode(themeMode === 'dark' ? 'light' : 'dark');
   }, [themeMode, setThemeMode]);
 
-  const handleSignOut = useCallback(() => {
+  const handleSignOut = useCallback(async () => {
     toast.dismiss();
-    logout();
-    toast.success(t('toast.signedOut'));
-    navigate('/login');
+    try {
+      await authApi.logout();
+      logout();
+      toast.success(t('toast.signedOut'));
+      navigate('/login');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to sign out. Please try again.');
+    }
   }, [logout, navigate, t]);
 
   const userInitials = user?.email

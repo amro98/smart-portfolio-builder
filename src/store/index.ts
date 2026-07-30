@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { ThemeMode } from '@/types';
+import type { ThemeMode, User } from '@/types';
 
 interface UIStore {
   themeMode: ThemeMode;
@@ -34,53 +34,25 @@ export const useUIStore = create<UIStore>()(
   )
 );
 
-// TODO: Replace mock auth with real JWT-based auth via Express backend.
-// When a real backend is added, the hydration step should validate
-// the stored token against the server (e.g. GET /auth/me) and
-// clear the session if expired.
-
-interface AuthUser {
-  id: string;
-  email: string;
-  onboardingCompleted: boolean;
-}
-
 interface AuthStore {
-  user: AuthUser | null;
-  token: string | null;
+  user: User | null;
   isAuthenticated: boolean;
-  _hasHydrated: boolean;
-  setHasHydrated: (v: boolean) => void;
-  login: (user: AuthUser, token: string) => void;
+  authChecked: boolean;
+  setAuthChecked: (checked: boolean) => void;
+  login: (user: User) => void;
   logout: () => void;
   completeOnboarding: () => void;
 }
 
-export const useAuthStore = create<AuthStore>()(
-  persist(
-    (set) => ({
-      user: null,
-      token: null,
-      isAuthenticated: false,
-      _hasHydrated: false,
-      setHasHydrated: (v) => set({ _hasHydrated: v }),
-      login: (user, token) => set({ user, token, isAuthenticated: true }),
-      logout: () => set({ user: null, token: null, isAuthenticated: false }),
-      completeOnboarding: () =>
-        set((state) => ({
-          user: state.user ? { ...state.user, onboardingCompleted: true } : null,
-        })),
-    }),
-    {
-      name: 'spb-auth-store',
-      partialize: (state) => ({
-        user: state.user,
-        token: state.token,
-        isAuthenticated: state.isAuthenticated,
-      }),
-      onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
-      },
-    }
-  )
-);
+export const useAuthStore = create<AuthStore>()((set) => ({
+  user: null,
+  isAuthenticated: false,
+  authChecked: false,
+  setAuthChecked: (checked) => set({ authChecked: checked }),
+  login: (user) => set({ user, isAuthenticated: true }),
+  logout: () => set({ user: null, isAuthenticated: false }),
+  completeOnboarding: () =>
+    set((state) => ({
+      user: state.user ? { ...state.user, onboardingCompleted: true } : null,
+    })),
+}));

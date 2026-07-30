@@ -54,7 +54,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const response = await authApi.login(email, password);
-      login(response.user, response.token);
+      login(response.user);
       toast.success(t('auth.login.toast.welcome'));
       navigate('/portfolios');
     } catch (err: unknown) {

@@ -32,12 +32,12 @@ export interface User {
   id: string;
   email: string;
   createdAt: string;
-  onboardingCompleted: boolean;
+  updatedAt?: string;
+  onboardingCompleted?: boolean;
 }
 
 export interface AuthResponse {
   user: User;
-  token: string;
 }
 
 export interface Portfolio {

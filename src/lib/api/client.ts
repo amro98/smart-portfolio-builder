@@ -5,43 +5,81 @@ import type {
   Certification, Testimonial, GalleryItem, AuthResponse, PublicPortfolioData
 } from '@/types';
 
-// TODO: Replace all mock API calls with real HTTP requests to Express backend
-// Example: const response = await fetch(`${API_BASE_URL}/auth/login`, { method: 'POST', body: JSON.stringify(data) });
-
 const MOCK_DELAY = 300;
+const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/+$/, '');
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  let response: Response;
+
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      credentials: 'include',
+      headers: {
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        ...options.headers,
+      },
+    });
+  } catch {
+    throw new Error('Unable to reach the server. Please try again.');
+  }
+
+  const responseText = await response.text();
+  let responseBody: unknown;
+
+  if (responseText) {
+    try {
+      responseBody = JSON.parse(responseText);
+    } catch {
+      responseBody = responseText;
+    }
+  }
+
+  if (!response.ok) {
+    const errorMessage =
+      typeof responseBody === 'object' &&
+      responseBody !== null &&
+      'error' in responseBody &&
+      typeof responseBody.error === 'string'
+        ? responseBody.error
+        : typeof responseBody === 'object' &&
+            responseBody !== null &&
+            'message' in responseBody &&
+            typeof responseBody.message === 'string'
+          ? responseBody.message
+          : typeof responseBody === 'string' && responseBody.trim()
+            ? responseBody
+            : `Request failed with status ${response.status}`;
+
+    throw new Error(errorMessage);
+  }
+
+  return responseBody as T;
+}
 
 export const authApi = {
-  async login(email: string, _password: string): Promise<AuthResponse> {
-    await delay(MOCK_DELAY);
-    let user = db.findUserByEmail(email);
-    if (!user) {
-      user = db.createUser(email, _password);
-    }
-    const portfolio = db.getPortfolio();
-    if (portfolio) {
-      db.setCurrentUser(user.id, portfolio.id);
-    }
-    return { user, token: `mock-token-${user.id}` };
+  login(email: string, password: string): Promise<AuthResponse> {
+    return request<AuthResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
   },
 
-  async register(email: string, password: string): Promise<AuthResponse> {
-    await delay(MOCK_DELAY);
-    const existing = db.findUserByEmail(email);
-    if (existing) throw new Error('User already exists');
-    const user = db.createUser(email, password);
-    return { user, token: `mock-token-${user.id}` };
+  register(email: string, password: string): Promise<AuthResponse> {
+    return request<AuthResponse>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
   },
 
   async logout(): Promise<void> {
-    await delay(100);
+    await request<{ ok: boolean }>('/auth/logout', {
+      method: 'POST',
+    });
   },
 
-  async me(): Promise<AuthResponse> {
-    await delay(100);
-    return {
-      user: { id: db.getCurrentUserId(), email: 'alex@example.com', createdAt: '', onboardingCompleted: true },
-      token: 'mock-token',
-    };
+  me(): Promise<AuthResponse> {
+    return request<AuthResponse>('/auth/me');
   },
 };
 
