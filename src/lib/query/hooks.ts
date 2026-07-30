@@ -4,7 +4,10 @@ import {
   skillsApi, servicesApi, certificationsApi, testimonialsApi, galleryApi,
 } from '@/lib/api/client';
 import { useI18n } from '@/lib/i18n';
-import type { Portfolio, Project, Experience, Skill, Service, Certification, Testimonial, GalleryItem } from '@/types';
+import type {
+  Portfolio, Project, Experience, Skill, Service, Certification,
+  Testimonial, GalleryItem, CreatePortfolioInput,
+} from '@/types';
 import { toast } from 'sonner';
 import { useCurrentPortfolioId } from '@/app/providers/portfolio-id-provider';
 
@@ -16,6 +19,15 @@ export function usePortfolios() {
   return useQuery({
     queryKey: portfoliosQueryKey,
     queryFn: portfolioApi.list,
+  });
+}
+
+export function useCreatePortfolio() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: (input: CreatePortfolioInput) => portfolioApi.create(input),
+    onSuccess: () => qc.invalidateQueries({ queryKey: portfoliosQueryKey }),
   });
 }
 

@@ -52,6 +52,12 @@ export interface BackendPortfolio {
   updatedAt: string;
 }
 
+export interface CreatePortfolioInput {
+  name: string;
+  slug?: string;
+  data?: unknown;
+}
+
 export interface Portfolio {
   id: string;
   userId: string;

@@ -3,7 +3,7 @@ import { delay } from '@/lib/utils';
 import type {
   Portfolio, Project, Experience, Skill, Service,
   Certification, Testimonial, GalleryItem, AuthResponse, PublicPortfolioData,
-  BackendPortfolio,
+  BackendPortfolio, CreatePortfolioInput,
 } from '@/types';
 
 const MOCK_DELAY = 300;
@@ -88,6 +88,14 @@ export const portfolioApi = {
   async list(): Promise<BackendPortfolio[]> {
     const response = await request<{ portfolios: BackendPortfolio[] }>('/portfolios');
     return response.portfolios;
+  },
+
+  async create(input: CreatePortfolioInput): Promise<BackendPortfolio> {
+    const response = await request<{ portfolio: BackendPortfolio }>('/portfolios', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+    return response.portfolio;
   },
 
   async remove(portfolioId: string): Promise<void> {
