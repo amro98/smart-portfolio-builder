@@ -1,31 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
-import {
-  authApi, portfolioApi, projectsApi, experiencesApi,
-  skillsApi, servicesApi, certificationsApi, testimonialsApi, galleryApi,
-} from '@/lib/api/client';
+import { portfolioApi } from '@/lib/api/client';
 import { useI18n } from '@/lib/i18n';
 import type {
   Portfolio, Project, Experience, Skill, Service, Certification,
   Testimonial, GalleryItem, CreatePortfolioInput,
 } from '@/types';
 import { toast } from 'sonner';
+import { generateId } from '@/lib/utils';
 import { useCurrentPortfolioId } from '@/app/providers/portfolio-id-provider';
 
-// TODO: Replace mock API calls with real Express API integration
-
 const portfoliosQueryKey = ['portfolios'] as const;
-const legacyMockPortfolioIds = new Set([
-  'portfolio-1',
-  'portfolio-dev',
-  'portfolio-doc',
-  'portfolio-photo',
-]);
 
-// Whether an id refers to a real backend portfolio (vs. a seeded mock/legacy id).
-// Shared so pages can tell when an action (e.g. unpublish) isn't backed by a real endpoint.
-export function isBackendPortfolioId(id: string | undefined | null): boolean {
-  return !!id && !legacyMockPortfolioIds.has(id);
+// Resolves the active portfolio id the same way across every portfolio-scoped hook:
+// an explicit argument wins, then the route param, then the nearest PortfolioIdProvider.
+function useResolvedPortfolioId(portfolioId?: string): string | undefined {
+  const { portfolioId: routePortfolioId } = useParams<{ portfolioId: string }>();
+  const contextId = useCurrentPortfolioId();
+  return portfolioId ?? routePortfolioId ?? contextId;
 }
 
 export function usePortfolios() {
@@ -56,59 +48,38 @@ export function useDeletePortfolio() {
   });
 }
 
-// portfolioId parameter takes precedence; falls back to the nearest PortfolioIdProvider
-// context value (default: 'portfolio-1') so legacy /dashboard/* routes keep working.
+// portfolioId parameter takes precedence; falls back to the route param, then the
+// nearest PortfolioIdProvider context value.
 export function usePortfolio(portfolioId?: string) {
-  const { portfolioId: routePortfolioId } = useParams<{ portfolioId: string }>();
-  const contextId = useCurrentPortfolioId();
-  const requestedPortfolioId = portfolioId ?? routePortfolioId;
-  const backendPortfolioId =
-    requestedPortfolioId && !legacyMockPortfolioIds.has(requestedPortfolioId)
-      ? requestedPortfolioId
-      : undefined;
-  const id = requestedPortfolioId ?? contextId;
+  const id = useResolvedPortfolioId(portfolioId);
 
   return useQuery({
     queryKey: ['portfolio', id],
-    queryFn: () =>
-      backendPortfolioId
-        ? portfolioApi.get(backendPortfolioId)
-        : portfolioApi.getMock(id),
+    queryFn: () => portfolioApi.get(id as string),
+    enabled: !!id,
   });
 }
 
 export function useUpdatePortfolio(portfolioId?: string) {
-  const { portfolioId: routePortfolioId } = useParams<{ portfolioId: string }>();
-  const contextId = useCurrentPortfolioId();
-  const requestedPortfolioId = portfolioId ?? routePortfolioId;
-  const backendPortfolioId =
-    requestedPortfolioId && !legacyMockPortfolioIds.has(requestedPortfolioId)
-      ? requestedPortfolioId
-      : undefined;
-  const id = requestedPortfolioId ?? contextId;
+  const id = useResolvedPortfolioId(portfolioId);
   const qc = useQueryClient();
   const { t } = useI18n();
 
   return useMutation({
     mutationFn: async (data: Partial<Portfolio>) => {
-      if (!backendPortfolioId) {
-        return portfolioApi.updateMock(data, id);
-      }
+      if (!id) throw new Error('No portfolio selected');
 
       const currentPortfolio =
-        qc.getQueryData<Portfolio>(['portfolio', id]) ??
-        (await portfolioApi.get(backendPortfolioId));
+        qc.getQueryData<Portfolio>(['portfolio', id]) ?? (await portfolioApi.get(id));
       const updatedPortfolio = { ...currentPortfolio, ...data };
 
-      return portfolioApi.update(backendPortfolioId, updatedPortfolio);
+      return portfolioApi.update(id, updatedPortfolio);
     },
     onSuccess: async (portfolio) => {
       qc.setQueryData(['portfolio', id], portfolio);
       await Promise.all([
         qc.invalidateQueries({ queryKey: ['portfolio', id] }),
-        ...(backendPortfolioId
-          ? [qc.invalidateQueries({ queryKey: portfoliosQueryKey })]
-          : []),
+        qc.invalidateQueries({ queryKey: portfoliosQueryKey }),
       ]);
       toast.success(t('toast.portfolio.updated'));
     },
@@ -117,33 +88,20 @@ export function useUpdatePortfolio(portfolioId?: string) {
 }
 
 export function usePublishPortfolio() {
-  const id = useCurrentPortfolioId();
-  const backendPortfolioId = isBackendPortfolioId(id) ? id : undefined;
+  const id = useResolvedPortfolioId();
   const qc = useQueryClient();
   const { t } = useI18n();
+
   return useMutation({
-    mutationFn: () =>
-      backendPortfolioId ? portfolioApi.publish(backendPortfolioId) : portfolioApi.publishMock(id),
+    mutationFn: () => {
+      if (!id) throw new Error('No portfolio selected');
+      return portfolioApi.publish(id);
+    },
     onSuccess: (portfolio) => {
       qc.setQueryData(['portfolio', id], portfolio);
       qc.invalidateQueries({ queryKey: ['portfolio', id] });
-      if (backendPortfolioId) {
-        qc.invalidateQueries({ queryKey: portfoliosQueryKey });
-      }
+      qc.invalidateQueries({ queryKey: portfoliosQueryKey });
       toast.success(t('toast.portfolio.published'));
-    },
-  });
-}
-
-export function useUnpublishPortfolio() {
-  const id = useCurrentPortfolioId();
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: () => portfolioApi.unpublish(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['portfolio', id] });
-      toast.success(t('toast.portfolio.unpublished'));
     },
   });
 }
@@ -156,248 +114,217 @@ export function usePublicPortfolio(slug: string) {
   });
 }
 
-// Projects
-export function useProjects() {
-  return useQuery({ queryKey: ['projects'], queryFn: projectsApi.list });
+// Projects/experience/skills/etc. all live inside the active Portfolio's `data` blob
+// (see Portfolio.projects/.experiences/...), not behind their own endpoints. Every list
+// below shares the ['portfolio', id] query (via `select`) and every mutation reads-modifies-
+// writes that same portfolio through portfolioApi.update, so cache and persistence stay in
+// lockstep with usePortfolio/useUpdatePortfolio and edits never leak across portfolios.
+interface ListResourceMessages {
+  created: string;
+  createFailed: string;
+  updated: string;
+  updateFailed: string;
+  deleted: string;
+  deleteFailed: string;
 }
 
-export function useCreateProject() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (data: Omit<Project, 'id' | 'portfolioId'>) => projectsApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['projects'] }); toast.success(t('toast.project.created')); },
-    onError: () => toast.error(t('toast.project.createFailed')),
-  });
+type PortfolioListField =
+  | 'projects'
+  | 'experiences'
+  | 'skills'
+  | 'services'
+  | 'certifications'
+  | 'testimonials'
+  | 'gallery';
+
+function createPortfolioListHooks<TItem extends { id: string; portfolioId: string; order: number }>(
+  field: PortfolioListField,
+  messages: ListResourceMessages
+) {
+  function getList(portfolio: Portfolio | undefined): TItem[] {
+    return ((portfolio?.[field] as unknown as TItem[] | undefined) ?? []);
+  }
+
+  function useList(portfolioId?: string) {
+    const id = useResolvedPortfolioId(portfolioId);
+    return useQuery({
+      queryKey: ['portfolio', id],
+      queryFn: () => portfolioApi.get(id as string),
+      enabled: !!id,
+      select: getList,
+    });
+  }
+
+  function useCreate() {
+    const id = useResolvedPortfolioId();
+    const qc = useQueryClient();
+    const { t } = useI18n();
+    return useMutation({
+      mutationFn: async (data: Omit<TItem, 'id' | 'portfolioId'>) => {
+        if (!id) throw new Error('No portfolio selected');
+        const current = qc.getQueryData<Portfolio>(['portfolio', id]) ?? (await portfolioApi.get(id));
+        const item = { ...data, id: generateId(), portfolioId: id } as TItem;
+        const list = [...getList(current), item];
+        return portfolioApi.update(id, { ...current, [field]: list } as Portfolio);
+      },
+      onSuccess: (portfolio) => {
+        qc.setQueryData(['portfolio', id], portfolio);
+        qc.invalidateQueries({ queryKey: portfoliosQueryKey });
+        toast.success(t(messages.created));
+      },
+      onError: () => toast.error(t(messages.createFailed)),
+    });
+  }
+
+  function useUpdate() {
+    const id = useResolvedPortfolioId();
+    const qc = useQueryClient();
+    const { t } = useI18n();
+    return useMutation({
+      mutationFn: async ({ id: itemId, data }: { id: string; data: Partial<TItem> }) => {
+        if (!id) throw new Error('No portfolio selected');
+        const current = qc.getQueryData<Portfolio>(['portfolio', id]) ?? (await portfolioApi.get(id));
+        const list = getList(current).map((item) => (item.id === itemId ? { ...item, ...data } : item));
+        return portfolioApi.update(id, { ...current, [field]: list } as Portfolio);
+      },
+      onSuccess: (portfolio) => {
+        qc.setQueryData(['portfolio', id], portfolio);
+        qc.invalidateQueries({ queryKey: portfoliosQueryKey });
+        toast.success(t(messages.updated));
+      },
+      onError: () => toast.error(t(messages.updateFailed)),
+    });
+  }
+
+  function useDelete() {
+    const id = useResolvedPortfolioId();
+    const qc = useQueryClient();
+    const { t } = useI18n();
+    return useMutation({
+      mutationFn: async (itemId: string) => {
+        if (!id) throw new Error('No portfolio selected');
+        const current = qc.getQueryData<Portfolio>(['portfolio', id]) ?? (await portfolioApi.get(id));
+        const list = getList(current).filter((item) => item.id !== itemId);
+        return portfolioApi.update(id, { ...current, [field]: list } as Portfolio);
+      },
+      onSuccess: (portfolio) => {
+        qc.setQueryData(['portfolio', id], portfolio);
+        qc.invalidateQueries({ queryKey: portfoliosQueryKey });
+        toast.success(t(messages.deleted));
+      },
+      onError: () => toast.error(t(messages.deleteFailed)),
+    });
+  }
+
+  function useReorder() {
+    const id = useResolvedPortfolioId();
+    const qc = useQueryClient();
+    return useMutation({
+      mutationFn: async (items: { id: string; order: number }[]) => {
+        if (!id) throw new Error('No portfolio selected');
+        const current = qc.getQueryData<Portfolio>(['portfolio', id]) ?? (await portfolioApi.get(id));
+        const orderById = new Map(items.map((item) => [item.id, item.order]));
+        const list = getList(current).map((item) =>
+          orderById.has(item.id) ? { ...item, order: orderById.get(item.id) as number } : item
+        );
+        return portfolioApi.update(id, { ...current, [field]: list } as Portfolio);
+      },
+      onSuccess: (portfolio) => qc.setQueryData(['portfolio', id], portfolio),
+    });
+  }
+
+  return { useList, useCreate, useUpdate, useDelete, useReorder };
 }
 
-export function useUpdateProject() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Project> }) => projectsApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['projects'] }); toast.success(t('toast.project.updated')); },
-    onError: () => toast.error(t('toast.project.updateFailed')),
-  });
-}
+const projectHooks = createPortfolioListHooks<Project>('projects', {
+  created: 'toast.project.created',
+  createFailed: 'toast.project.createFailed',
+  updated: 'toast.project.updated',
+  updateFailed: 'toast.project.updateFailed',
+  deleted: 'toast.project.deleted',
+  deleteFailed: 'toast.project.deleteFailed',
+});
+export const useProjects = projectHooks.useList;
+export const useCreateProject = projectHooks.useCreate;
+export const useUpdateProject = projectHooks.useUpdate;
+export const useDeleteProject = projectHooks.useDelete;
+export const useReorderProjects = projectHooks.useReorder;
 
-export function useDeleteProject() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (id: string) => projectsApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['projects'] }); toast.success(t('toast.project.deleted')); },
-    onError: () => toast.error(t('toast.project.deleteFailed')),
-  });
-}
+const experienceHooks = createPortfolioListHooks<Experience>('experiences', {
+  created: 'toast.experience.created',
+  createFailed: 'toast.experience.createFailed',
+  updated: 'toast.experience.updated',
+  updateFailed: 'toast.experience.updateFailed',
+  deleted: 'toast.experience.deleted',
+  deleteFailed: 'toast.experience.deleteFailed',
+});
+export const useExperiences = experienceHooks.useList;
+export const useCreateExperience = experienceHooks.useCreate;
+export const useUpdateExperience = experienceHooks.useUpdate;
+export const useDeleteExperience = experienceHooks.useDelete;
+export const useReorderExperiences = experienceHooks.useReorder;
 
-export function useReorderProjects() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (items: { id: string; order: number }[]) => projectsApi.reorder(items),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['projects'] }),
-  });
-}
+const skillHooks = createPortfolioListHooks<Skill>('skills', {
+  created: 'toast.skill.created',
+  createFailed: 'toast.skill.createFailed',
+  updated: 'toast.skill.updated',
+  updateFailed: 'toast.skill.updateFailed',
+  deleted: 'toast.skill.deleted',
+  deleteFailed: 'toast.skill.deleteFailed',
+});
+export const useSkills = skillHooks.useList;
+export const useCreateSkill = skillHooks.useCreate;
+export const useUpdateSkill = skillHooks.useUpdate;
+export const useDeleteSkill = skillHooks.useDelete;
 
-// Experiences
-export function useExperiences() {
-  return useQuery({ queryKey: ['experiences'], queryFn: experiencesApi.list });
-}
+const serviceHooks = createPortfolioListHooks<Service>('services', {
+  created: 'toast.service.created',
+  createFailed: 'toast.service.createFailed',
+  updated: 'toast.service.updated',
+  updateFailed: 'toast.service.updateFailed',
+  deleted: 'toast.service.deleted',
+  deleteFailed: 'toast.service.deleteFailed',
+});
+export const useServices = serviceHooks.useList;
+export const useCreateService = serviceHooks.useCreate;
+export const useUpdateService = serviceHooks.useUpdate;
+export const useDeleteService = serviceHooks.useDelete;
 
-export function useCreateExperience() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (data: Omit<Experience, 'id' | 'portfolioId'>) => experiencesApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['experiences'] }); toast.success(t('toast.experience.created')); },
-    onError: () => toast.error(t('toast.experience.createFailed')),
-  });
-}
+const certificationHooks = createPortfolioListHooks<Certification>('certifications', {
+  created: 'toast.certification.created',
+  createFailed: 'toast.certification.createFailed',
+  updated: 'toast.certification.updated',
+  updateFailed: 'toast.certification.updateFailed',
+  deleted: 'toast.certification.deleted',
+  deleteFailed: 'toast.certification.deleteFailed',
+});
+export const useCertifications = certificationHooks.useList;
+export const useCreateCertification = certificationHooks.useCreate;
+export const useUpdateCertification = certificationHooks.useUpdate;
+export const useDeleteCertification = certificationHooks.useDelete;
 
-export function useUpdateExperience() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Experience> }) => experiencesApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['experiences'] }); toast.success(t('toast.experience.updated')); },
-    onError: () => toast.error(t('toast.experience.updateFailed')),
-  });
-}
+const testimonialHooks = createPortfolioListHooks<Testimonial>('testimonials', {
+  created: 'toast.testimonial.created',
+  createFailed: 'toast.testimonial.createFailed',
+  updated: 'toast.testimonial.updated',
+  updateFailed: 'toast.testimonial.updateFailed',
+  deleted: 'toast.testimonial.deleted',
+  deleteFailed: 'toast.testimonial.deleteFailed',
+});
+export const useTestimonials = testimonialHooks.useList;
+export const useCreateTestimonial = testimonialHooks.useCreate;
+export const useUpdateTestimonial = testimonialHooks.useUpdate;
+export const useDeleteTestimonial = testimonialHooks.useDelete;
 
-export function useDeleteExperience() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (id: string) => experiencesApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['experiences'] }); toast.success(t('toast.experience.deleted')); },
-    onError: () => toast.error(t('toast.experience.updateFailed')),
-  });
-}
-
-export function useReorderExperiences() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (items: { id: string; order: number }[]) => experiencesApi.reorder(items),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['experiences'] }),
-  });
-}
-
-// Skills
-export function useSkills() {
-  return useQuery({ queryKey: ['skills'], queryFn: skillsApi.list });
-}
-
-export function useCreateSkill() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (data: Omit<Skill, 'id' | 'portfolioId'>) => skillsApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['skills'] }); toast.success(t('toast.skill.created')); },
-  });
-}
-
-export function useUpdateSkill() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Skill> }) => skillsApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['skills'] }); toast.success(t('toast.skill.updated')); },
-  });
-}
-
-export function useDeleteSkill() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (id: string) => skillsApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['skills'] }); toast.success(t('toast.skill.deleted')); },
-  });
-}
-
-// Services
-export function useServices() {
-  return useQuery({ queryKey: ['services'], queryFn: servicesApi.list });
-}
-
-export function useCreateService() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (data: Omit<Service, 'id' | 'portfolioId'>) => servicesApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['services'] }); toast.success(t('toast.service.created')); },
-  });
-}
-
-export function useUpdateService() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Service> }) => servicesApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['services'] }); toast.success(t('toast.service.updated')); },
-  });
-}
-
-export function useDeleteService() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (id: string) => servicesApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['services'] }); toast.success(t('toast.service.deleted')); },
-  });
-}
-
-// Certifications
-export function useCertifications() {
-  return useQuery({ queryKey: ['certifications'], queryFn: certificationsApi.list });
-}
-
-export function useCreateCertification() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (data: Omit<Certification, 'id' | 'portfolioId'>) => certificationsApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['certifications'] }); toast.success(t('toast.certification.created')); },
-  });
-}
-
-export function useUpdateCertification() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Certification> }) => certificationsApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['certifications'] }); toast.success(t('toast.certification.updated')); },
-  });
-}
-
-export function useDeleteCertification() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (id: string) => certificationsApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['certifications'] }); toast.success(t('toast.certification.deleted')); },
-  });
-}
-
-// Testimonials
-export function useTestimonials() {
-  return useQuery({ queryKey: ['testimonials'], queryFn: testimonialsApi.list });
-}
-
-export function useCreateTestimonial() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (data: Omit<Testimonial, 'id' | 'portfolioId'>) => testimonialsApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['testimonials'] }); toast.success(t('toast.testimonial.created')); },
-  });
-}
-
-export function useUpdateTestimonial() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<Testimonial> }) => testimonialsApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['testimonials'] }); toast.success(t('toast.testimonial.updated')); },
-  });
-}
-
-export function useDeleteTestimonial() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (id: string) => testimonialsApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['testimonials'] }); toast.success(t('toast.testimonial.deleted')); },
-  });
-}
-
-// Gallery
-export function useGallery() {
-  return useQuery({ queryKey: ['gallery'], queryFn: galleryApi.list });
-}
-
-export function useCreateGalleryItem() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (data: Omit<GalleryItem, 'id' | 'portfolioId'>) => galleryApi.create(data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['gallery'] }); toast.success(t('toast.gallery.created')); },
-  });
-}
-
-export function useUpdateGalleryItem() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<GalleryItem> }) => galleryApi.update(id, data),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['gallery'] }); toast.success(t('toast.gallery.updated')); },
-  });
-}
-
-export function useDeleteGalleryItem() {
-  const qc = useQueryClient();
-  const { t } = useI18n();
-  return useMutation({
-    mutationFn: (id: string) => galleryApi.remove(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['gallery'] }); toast.success(t('toast.gallery.deleted')); },
-  });
-}
+const galleryHooks = createPortfolioListHooks<GalleryItem>('gallery', {
+  created: 'toast.gallery.created',
+  createFailed: 'toast.gallery.createFailed',
+  updated: 'toast.gallery.updated',
+  updateFailed: 'toast.gallery.updateFailed',
+  deleted: 'toast.gallery.deleted',
+  deleteFailed: 'toast.gallery.deleteFailed',
+});
+export const useGallery = galleryHooks.useList;
+export const useCreateGalleryItem = galleryHooks.useCreate;
+export const useUpdateGalleryItem = galleryHooks.useUpdate;
+export const useDeleteGalleryItem = galleryHooks.useDelete;

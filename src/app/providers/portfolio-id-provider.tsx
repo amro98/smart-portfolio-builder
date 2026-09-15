@@ -1,10 +1,7 @@
 import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 
-// Fallback used when a component is rendered outside PortfolioIdProvider (e.g. legacy /dashboard/* routes)
-const DEFAULT_PORTFOLIO_ID = 'portfolio-1';
-
-const PortfolioIdContext = createContext<string>(DEFAULT_PORTFOLIO_ID);
+const PortfolioIdContext = createContext<string | undefined>(undefined);
 
 interface PortfolioIdProviderProps {
   portfolioId: string;
@@ -19,6 +16,7 @@ export function PortfolioIdProvider({ portfolioId, children }: PortfolioIdProvid
   );
 }
 
-export function useCurrentPortfolioId(): string {
+// Undefined when rendered outside a PortfolioIdProvider (e.g. no active portfolio route).
+export function useCurrentPortfolioId(): string | undefined {
   return useContext(PortfolioIdContext);
 }

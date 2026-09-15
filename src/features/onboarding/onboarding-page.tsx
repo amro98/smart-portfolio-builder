@@ -32,7 +32,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { useAuthStore, useUIStore } from '@/store';
-import { portfolioApi } from '@/lib/api/client';
+import { useCreatePortfolio } from '@/lib/query/hooks';
 import { professionPresets } from '@/lib/presets/professions';
 import { colorPaletteList } from '@/lib/presets/colors';
 import { animationPresetList } from '@/lib/presets/animations';
@@ -111,6 +111,7 @@ export default function OnboardingPage() {
   const navigate = useNavigate();
   const { completeOnboarding } = useAuthStore();
   const { setOnboardingStep } = useUIStore();
+  const createPortfolio = useCreatePortfolio();
 
   const [currentStep, setCurrentStep] = useState(0);
   const [direction, setDirection] = useState(0);
@@ -192,27 +193,35 @@ export default function OnboardingPage() {
     try {
       const sectionVisibility = { ...enabledSections };
       const sectionOrder = ALL_SECTIONS.filter((s) => sectionVisibility[s]);
+      const trimmedName = fullName.trim();
+      const trimmedTitle = title.trim();
 
-      await portfolioApi.updateMock({
-        fullName: fullName.trim(),
-        title: title.trim(),
-        slug: slug.trim(),
-        profession,
-        location: location.trim(),
-        bio: bio.trim(),
-        themeMode,
-        colorPaletteId,
-        animationPresetId,
-        sectionOrder,
-        sectionVisibility,
-        ctaLabel: currentPreset.ctaLabel,
+      const portfolio = await createPortfolio.mutateAsync({
+        name: trimmedName || trimmedTitle || 'Untitled Portfolio',
+        slug: slug.trim() || undefined,
+        data: {
+          fullName: trimmedName,
+          title: trimmedTitle,
+          slug: slug.trim(),
+          profession,
+          location: location.trim(),
+          bio: bio.trim(),
+          themeMode,
+          colorPaletteId,
+          animationPresetId,
+          sectionOrder,
+          sectionVisibility,
+          ctaLabel: currentPreset.ctaLabel,
+        },
       });
 
       completeOnboarding();
       toast.success('Portfolio created successfully!');
-      navigate('/dashboard');
-    } catch {
-      toast.error('Something went wrong. Please try again.');
+      navigate(`/portfolios/${portfolio.id}/overview`);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -228,6 +237,7 @@ export default function OnboardingPage() {
     animationPresetId,
     enabledSections,
     currentPreset,
+    createPortfolio,
     completeOnboarding,
     navigate,
   ]);

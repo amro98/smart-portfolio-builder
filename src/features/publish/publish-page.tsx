@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useMemo } from 'react';
 import {
   Globe,
   Copy,
@@ -12,12 +12,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import {
-  usePortfolio,
-  usePublishPortfolio,
-  useUnpublishPortfolio,
-  isBackendPortfolioId,
-} from '@/lib/query/hooks';
+import { usePortfolio, usePublishPortfolio } from '@/lib/query/hooks';
 import { useI18n } from '@/lib/i18n';
 import {
   Card,
@@ -31,7 +26,6 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { PageHeader } from '@/components/shared/page-header';
-import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { LoadingPage } from '@/components/shared/loading-card';
 import { ErrorState } from '@/components/shared/error-state';
 import { cn } from '@/lib/utils';
@@ -39,14 +33,11 @@ import { cn } from '@/lib/utils';
 export default function PublishPage() {
   const { data: portfolio, isLoading, isError, refetch } = usePortfolio();
   const publishPortfolio = usePublishPortfolio();
-  const unpublishPortfolio = useUnpublishPortfolio();
-  const [showUnpublishDialog, setShowUnpublishDialog] = useState(false);
   const { t } = useI18n();
 
   const publicUrl = portfolio
     ? `${window.location.origin}/u/${portfolio.slug}`
     : '';
-  const isBackendPortfolio = isBackendPortfolioId(portfolio?.id);
 
   const checklist = useMemo(() => {
     if (!portfolio) return [];
@@ -84,9 +75,8 @@ export default function PublishPage() {
   }
 
   function handleUnpublish() {
-    unpublishPortfolio.mutate(undefined, {
-      onSuccess: () => setShowUnpublishDialog(false),
-    });
+    // The backend doesn't expose an unpublish endpoint yet.
+    toast.info(t('publish.unpublishNotSupported'));
   }
 
   if (isLoading) {
@@ -234,13 +224,7 @@ export default function PublishPage() {
               <Button
                 variant="destructive"
                 size="lg"
-                onClick={() => {
-                  if (isBackendPortfolio) {
-                    toast.info(t('publish.unpublishNotSupported'));
-                    return;
-                  }
-                  setShowUnpublishDialog(true);
-                }}
+                onClick={handleUnpublish}
               >
                 {t('publish.button.unpublish')}
               </Button>
@@ -313,16 +297,6 @@ export default function PublishPage() {
           </div>
         </CardContent>
       </Card>
-
-      <ConfirmDialog
-        open={showUnpublishDialog}
-        onOpenChange={setShowUnpublishDialog}
-        title={t('publish.unpublishDialog.title')}
-        description={t('publish.unpublishDialog.description')}
-        confirmLabel={t('publish.unpublishDialog.confirmButton')}
-        onConfirm={handleUnpublish}
-        destructive
-      />
     </div>
   );
 }

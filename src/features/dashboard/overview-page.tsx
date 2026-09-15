@@ -134,7 +134,7 @@ export default function OverviewPage() {
   }
 
   const projectCount = (projects as unknown[])?.length ?? 0;
-  const editorBasePath = portfolioId ? `/portfolios/${portfolioId}` : '/dashboard';
+  const editorBasePath = `/portfolios/${portfolioId}`;
 
   const stats = [
     {

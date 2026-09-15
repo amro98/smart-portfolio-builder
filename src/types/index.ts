@@ -85,6 +85,13 @@ export interface Portfolio {
   isPublished: boolean;
   publishedAt: string | null;
   updatedAt: string;
+  projects: Project[];
+  experiences: Experience[];
+  skills: Skill[];
+  services: Service[];
+  certifications: Certification[];
+  testimonials: Testimonial[];
+  gallery: GalleryItem[];
 }
 
 export interface SocialLinks {

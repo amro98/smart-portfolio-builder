@@ -1,5 +1,4 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import DashboardLayout from '@/app/layouts/dashboard-layout';
 import AppLayout from '@/app/layouts/app-layout';
 import PortfolioEditorLayout from '@/app/layouts/portfolio-editor-layout';
 import AuthLayout from '@/app/layouts/auth-layout';
@@ -76,6 +75,7 @@ export const router = createBrowserRouter([
           { path: 'gallery', element: <GalleryPage /> },
           { path: 'appearance', element: <AppearancePage /> },
           { path: 'sections', element: <SectionsPage /> },
+          { path: 'preview', element: <PreviewPage /> },
           { path: 'publish', element: <PublishPage /> },
         ],
       },
@@ -98,27 +98,14 @@ export const router = createBrowserRouter([
     ],
   },
   {
+    // The dashboard-scoped editor was replaced by /portfolios/:portfolioId/*.
+    // Old links/bookmarks are redirected rather than served by a duplicate layout.
     path: '/dashboard',
-    element: (
-      <AuthGuard>
-        <DashboardLayout />
-      </AuthGuard>
-    ),
-    children: [
-      { index: true, element: <OverviewPage /> },
-      { path: 'profile', element: <ProfilePage /> },
-      { path: 'projects', element: <ProjectsPage /> },
-      { path: 'experience', element: <ExperiencePage /> },
-      { path: 'skills', element: <SkillsPage /> },
-      { path: 'services', element: <ServicesPage /> },
-      { path: 'certifications', element: <CertificationsPage /> },
-      { path: 'testimonials', element: <TestimonialsPage /> },
-      { path: 'gallery', element: <GalleryPage /> },
-      { path: 'appearance', element: <AppearancePage /> },
-      { path: 'sections', element: <SectionsPage /> },
-      { path: 'publish', element: <PublishPage /> },
-      { path: 'preview', element: <PreviewPage /> },
-    ],
+    element: <Navigate to="/portfolios" replace />,
+  },
+  {
+    path: '/dashboard/*',
+    element: <Navigate to="/portfolios" replace />,
   },
   {
     path: '/u/:slug',
