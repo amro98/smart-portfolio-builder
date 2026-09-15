@@ -3,11 +3,188 @@ import { delay } from '@/lib/utils';
 import type {
   Portfolio, Project, Experience, Skill, Service,
   Certification, Testimonial, GalleryItem, AuthResponse, PublicPortfolioData,
-  BackendPortfolio, CreatePortfolioInput,
+  BackendPortfolio, CreatePortfolioInput, ProfessionCategory, TemplateId,
+  ColorPaletteId, AnimationPresetId, FontPresetId, ThemeMode, SectionId,
 } from '@/types';
 
 const MOCK_DELAY = 300;
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/+$/, '');
+const DEFAULT_SECTION_ORDER: SectionId[] = [
+  'hero',
+  'about',
+  'projects',
+  'experience',
+  'skills',
+  'contact',
+];
+const DEFAULT_SECTION_VISIBILITY: Record<SectionId, boolean> = {
+  hero: true,
+  about: true,
+  projects: true,
+  experience: true,
+  skills: true,
+  services: false,
+  certifications: false,
+  testimonials: false,
+  gallery: false,
+  contact: true,
+};
+const DEFAULT_SOCIAL_LINKS: Portfolio['socialLinks'] = {
+  linkedin: '',
+  github: '',
+  twitter: '',
+  instagram: '',
+  behance: '',
+  dribbble: '',
+  website: '',
+  youtube: '',
+};
+const PROFESSION_VALUES: ProfessionCategory[] = [
+  'developer',
+  'doctor',
+  'lawyer',
+  'designer',
+  'photographer',
+  'coach',
+  'freelancer',
+  'student',
+  'business-owner',
+  'other',
+];
+const TEMPLATE_VALUES: TemplateId[] = ['modern', 'minimal', 'corporate', 'creative'];
+const COLOR_PALETTE_VALUES: ColorPaletteId[] = [
+  'monochrome',
+  'corporate-blue',
+  'medical-calm',
+  'creative-gradient',
+  'warm-coach',
+  'elegant-neutral',
+];
+const ANIMATION_VALUES: AnimationPresetId[] = ['none', 'subtle', 'soft', 'modern', 'dynamic'];
+const FONT_VALUES: FontPresetId[] = ['professional', 'modern', 'creative'];
+const THEME_VALUES: ThemeMode[] = ['light', 'dark', 'auto'];
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function stringValue(value: unknown, fallback = ''): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function enumValue<T extends string>(value: unknown, values: readonly T[], fallback: T): T {
+  return typeof value === 'string' && values.includes(value as T) ? (value as T) : fallback;
+}
+
+function normalizeSocialLinks(value: unknown): Portfolio['socialLinks'] {
+  const links = isRecord(value) ? value : {};
+
+  return {
+    linkedin: stringValue(links.linkedin),
+    github: stringValue(links.github),
+    twitter: stringValue(links.twitter),
+    instagram: stringValue(links.instagram),
+    behance: stringValue(links.behance),
+    dribbble: stringValue(links.dribbble),
+    website: stringValue(links.website),
+    youtube: stringValue(links.youtube),
+  };
+}
+
+function normalizeSectionOrder(value: unknown): SectionId[] {
+  if (!Array.isArray(value)) return [...DEFAULT_SECTION_ORDER];
+
+  const sections = value.filter(
+    (section): section is SectionId =>
+      typeof section === 'string' && section in DEFAULT_SECTION_VISIBILITY
+  );
+
+  return sections.length > 0 ? sections : [...DEFAULT_SECTION_ORDER];
+}
+
+function normalizeSectionVisibility(value: unknown): Record<SectionId, boolean> {
+  const visibility = isRecord(value) ? value : {};
+
+  return Object.keys(DEFAULT_SECTION_VISIBILITY).reduce(
+    (result, section) => {
+      const sectionId = section as SectionId;
+      result[sectionId] =
+        typeof visibility[sectionId] === 'boolean'
+          ? visibility[sectionId]
+          : DEFAULT_SECTION_VISIBILITY[sectionId];
+      return result;
+    },
+    {} as Record<SectionId, boolean>
+  );
+}
+
+export function backendToFrontendPortfolio(record: BackendPortfolio): Portfolio {
+  const data = isRecord(record.data) ? record.data : {};
+
+  const defaults: Portfolio = {
+    id: record.id,
+    userId: record.userId,
+    fullName: record.name,
+    title: record.name,
+    bio: '',
+    slug: record.slug,
+    profession: 'other',
+    location: '',
+    email: '',
+    avatarUrl: '',
+    coverUrl: '',
+    resumeUrl: '',
+    ctaLabel: 'Contact Me',
+    ctaLink: '#contact',
+    socialLinks: { ...DEFAULT_SOCIAL_LINKS },
+    templateId: 'modern',
+    colorPaletteId: 'elegant-neutral',
+    animationPresetId: 'soft',
+    fontPresetId: 'professional',
+    themeMode: 'light',
+    customAccentColor: '',
+    sectionOrder: [...DEFAULT_SECTION_ORDER],
+    sectionVisibility: { ...DEFAULT_SECTION_VISIBILITY },
+    isPublished: record.status === 'PUBLISHED',
+    publishedAt: record.publishedAt,
+    updatedAt: record.updatedAt,
+  };
+
+  return {
+    ...defaults,
+    ...data,
+    id: record.id,
+    userId: record.userId,
+    fullName: stringValue(data.fullName, record.name) || record.name,
+    title: stringValue(data.title, record.name) || record.name,
+    slug: record.slug,
+    profession: enumValue(data.profession, PROFESSION_VALUES, 'other'),
+    socialLinks: normalizeSocialLinks(data.socialLinks),
+    templateId: enumValue(data.templateId, TEMPLATE_VALUES, 'modern'),
+    colorPaletteId: enumValue(data.colorPaletteId, COLOR_PALETTE_VALUES, 'elegant-neutral'),
+    animationPresetId: enumValue(data.animationPresetId, ANIMATION_VALUES, 'soft'),
+    fontPresetId: enumValue(data.fontPresetId, FONT_VALUES, 'professional'),
+    themeMode: enumValue(data.themeMode, THEME_VALUES, 'light'),
+    sectionOrder: normalizeSectionOrder(data.sectionOrder),
+    sectionVisibility: normalizeSectionVisibility(data.sectionVisibility),
+    isPublished: record.status === 'PUBLISHED',
+    publishedAt: record.publishedAt,
+    updatedAt: record.updatedAt,
+  } as Portfolio;
+}
+
+export function frontendToBackendUpdate(portfolio: Portfolio) {
+  const name =
+    stringValue(portfolio.fullName).trim() ||
+    stringValue(portfolio.title).trim() ||
+    'Untitled Portfolio';
+
+  return {
+    name,
+    slug: stringValue(portfolio.slug),
+    data: { ...portfolio },
+  };
+}
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   let response: Response;
@@ -104,14 +281,32 @@ export const portfolioApi = {
     });
   },
 
-  async get(portfolioId?: string): Promise<Portfolio> {
+  async get(portfolioId: string): Promise<Portfolio> {
+    const response = await request<{ portfolio: BackendPortfolio }>(
+      `/portfolios/${encodeURIComponent(portfolioId)}`
+    );
+    return backendToFrontendPortfolio(response.portfolio);
+  },
+
+  async update(portfolioId: string, portfolio: Portfolio): Promise<Portfolio> {
+    const response = await request<{ portfolio: BackendPortfolio }>(
+      `/portfolios/${encodeURIComponent(portfolioId)}`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify(frontendToBackendUpdate(portfolio)),
+      }
+    );
+    return backendToFrontendPortfolio(response.portfolio);
+  },
+
+  async getMock(portfolioId?: string): Promise<Portfolio> {
     await delay(MOCK_DELAY);
     const p = portfolioId ? db.getPortfolioById(portfolioId) : db.getPortfolio();
     if (!p) throw new Error('Portfolio not found');
     return p;
   },
 
-  async update(data: Partial<Portfolio>, portfolioId?: string): Promise<Portfolio> {
+  async updateMock(data: Partial<Portfolio>, portfolioId?: string): Promise<Portfolio> {
     await delay(MOCK_DELAY);
     if (portfolioId) return db.updatePortfolioById(portfolioId, data);
     return db.updatePortfolio(data);

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useParams } from 'react-router-dom';
 import {
   authApi, portfolioApi, projectsApi, experiencesApi,
   skillsApi, servicesApi, certificationsApi, testimonialsApi, galleryApi,
@@ -14,6 +15,12 @@ import { useCurrentPortfolioId } from '@/app/providers/portfolio-id-provider';
 // TODO: Replace mock API calls with real Express API integration
 
 const portfoliosQueryKey = ['portfolios'] as const;
+const legacyMockPortfolioIds = new Set([
+  'portfolio-1',
+  'portfolio-dev',
+  'portfolio-doc',
+  'portfolio-photo',
+]);
 
 export function usePortfolios() {
   return useQuery({
@@ -46,23 +53,57 @@ export function useDeletePortfolio() {
 // portfolioId parameter takes precedence; falls back to the nearest PortfolioIdProvider
 // context value (default: 'portfolio-1') so legacy /dashboard/* routes keep working.
 export function usePortfolio(portfolioId?: string) {
+  const { portfolioId: routePortfolioId } = useParams<{ portfolioId: string }>();
   const contextId = useCurrentPortfolioId();
-  const id = portfolioId ?? contextId;
+  const requestedPortfolioId = portfolioId ?? routePortfolioId;
+  const backendPortfolioId =
+    requestedPortfolioId && !legacyMockPortfolioIds.has(requestedPortfolioId)
+      ? requestedPortfolioId
+      : undefined;
+  const id = requestedPortfolioId ?? contextId;
+
   return useQuery({
     queryKey: ['portfolio', id],
-    queryFn: () => portfolioApi.get(id),
+    queryFn: () =>
+      backendPortfolioId
+        ? portfolioApi.get(backendPortfolioId)
+        : portfolioApi.getMock(id),
   });
 }
 
 export function useUpdatePortfolio(portfolioId?: string) {
+  const { portfolioId: routePortfolioId } = useParams<{ portfolioId: string }>();
   const contextId = useCurrentPortfolioId();
-  const id = portfolioId ?? contextId;
+  const requestedPortfolioId = portfolioId ?? routePortfolioId;
+  const backendPortfolioId =
+    requestedPortfolioId && !legacyMockPortfolioIds.has(requestedPortfolioId)
+      ? requestedPortfolioId
+      : undefined;
+  const id = requestedPortfolioId ?? contextId;
   const qc = useQueryClient();
   const { t } = useI18n();
+
   return useMutation({
-    mutationFn: (data: Partial<Portfolio>) => portfolioApi.update(data, id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['portfolio', id] });
+    mutationFn: async (data: Partial<Portfolio>) => {
+      if (!backendPortfolioId) {
+        return portfolioApi.updateMock(data, id);
+      }
+
+      const currentPortfolio =
+        qc.getQueryData<Portfolio>(['portfolio', id]) ??
+        (await portfolioApi.get(backendPortfolioId));
+      const updatedPortfolio = { ...currentPortfolio, ...data };
+
+      return portfolioApi.update(backendPortfolioId, updatedPortfolio);
+    },
+    onSuccess: async (portfolio) => {
+      qc.setQueryData(['portfolio', id], portfolio);
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ['portfolio', id] }),
+        ...(backendPortfolioId
+          ? [qc.invalidateQueries({ queryKey: portfoliosQueryKey })]
+          : []),
+      ]);
       toast.success(t('toast.portfolio.updated'));
     },
     onError: () => toast.error(t('toast.portfolio.updateFailed')),

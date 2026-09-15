@@ -193,7 +193,7 @@ export default function OnboardingPage() {
       const sectionVisibility = { ...enabledSections };
       const sectionOrder = ALL_SECTIONS.filter((s) => sectionVisibility[s]);
 
-      await portfolioApi.update({
+      await portfolioApi.updateMock({
         fullName: fullName.trim(),
         title: title.trim(),
         slug: slug.trim(),
