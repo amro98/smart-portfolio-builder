@@ -12,7 +12,12 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { usePortfolio, usePublishPortfolio, useUnpublishPortfolio } from '@/lib/query/hooks';
+import {
+  usePortfolio,
+  usePublishPortfolio,
+  useUnpublishPortfolio,
+  isBackendPortfolioId,
+} from '@/lib/query/hooks';
 import { useI18n } from '@/lib/i18n';
 import {
   Card,
@@ -41,6 +46,7 @@ export default function PublishPage() {
   const publicUrl = portfolio
     ? `${window.location.origin}/u/${portfolio.slug}`
     : '';
+  const isBackendPortfolio = isBackendPortfolioId(portfolio?.id);
 
   const checklist = useMemo(() => {
     if (!portfolio) return [];
@@ -228,7 +234,13 @@ export default function PublishPage() {
               <Button
                 variant="destructive"
                 size="lg"
-                onClick={() => setShowUnpublishDialog(true)}
+                onClick={() => {
+                  if (isBackendPortfolio) {
+                    toast.info(t('publish.unpublishNotSupported'));
+                    return;
+                  }
+                  setShowUnpublishDialog(true);
+                }}
               >
                 {t('publish.button.unpublish')}
               </Button>

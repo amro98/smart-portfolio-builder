@@ -22,6 +22,12 @@ const legacyMockPortfolioIds = new Set([
   'portfolio-photo',
 ]);
 
+// Whether an id refers to a real backend portfolio (vs. a seeded mock/legacy id).
+// Shared so pages can tell when an action (e.g. unpublish) isn't backed by a real endpoint.
+export function isBackendPortfolioId(id: string | undefined | null): boolean {
+  return !!id && !legacyMockPortfolioIds.has(id);
+}
+
 export function usePortfolios() {
   return useQuery({
     queryKey: portfoliosQueryKey,
@@ -112,12 +118,18 @@ export function useUpdatePortfolio(portfolioId?: string) {
 
 export function usePublishPortfolio() {
   const id = useCurrentPortfolioId();
+  const backendPortfolioId = isBackendPortfolioId(id) ? id : undefined;
   const qc = useQueryClient();
   const { t } = useI18n();
   return useMutation({
-    mutationFn: () => portfolioApi.publish(id),
-    onSuccess: () => {
+    mutationFn: () =>
+      backendPortfolioId ? portfolioApi.publish(backendPortfolioId) : portfolioApi.publishMock(id),
+    onSuccess: (portfolio) => {
+      qc.setQueryData(['portfolio', id], portfolio);
       qc.invalidateQueries({ queryKey: ['portfolio', id] });
+      if (backendPortfolioId) {
+        qc.invalidateQueries({ queryKey: portfoliosQueryKey });
+      }
       toast.success(t('toast.portfolio.published'));
     },
   });

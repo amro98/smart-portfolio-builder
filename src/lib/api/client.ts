@@ -118,12 +118,18 @@ function normalizeSectionVisibility(value: unknown): Record<SectionId, boolean> 
   );
 }
 
-export function backendToFrontendPortfolio(record: BackendPortfolio): Portfolio {
+type BackendPortfolioLike = Pick<
+  BackendPortfolio,
+  'id' | 'name' | 'slug' | 'status' | 'data' | 'publishedAt' | 'updatedAt'
+> &
+  Partial<Pick<BackendPortfolio, 'userId'>>;
+
+export function backendToFrontendPortfolio(record: BackendPortfolioLike): Portfolio {
   const data = isRecord(record.data) ? record.data : {};
 
   const defaults: Portfolio = {
     id: record.id,
-    userId: record.userId,
+    userId: record.userId ?? '',
     fullName: record.name,
     title: record.name,
     bio: '',
@@ -154,7 +160,7 @@ export function backendToFrontendPortfolio(record: BackendPortfolio): Portfolio 
     ...defaults,
     ...data,
     id: record.id,
-    userId: record.userId,
+    userId: record.userId ?? '',
     fullName: stringValue(data.fullName, record.name) || record.name,
     title: stringValue(data.title, record.name) || record.name,
     slug: record.slug,
@@ -312,13 +318,23 @@ export const portfolioApi = {
     return db.updatePortfolio(data);
   },
 
-  async publish(portfolioId?: string): Promise<Portfolio> {
+  async publish(portfolioId: string): Promise<Portfolio> {
+    const response = await request<{ portfolio: BackendPortfolio }>(
+      `/portfolios/${encodeURIComponent(portfolioId)}/publish`,
+      { method: 'POST' }
+    );
+    return backendToFrontendPortfolio(response.portfolio);
+  },
+
+  async publishMock(portfolioId?: string): Promise<Portfolio> {
     await delay(MOCK_DELAY);
     const patch = { isPublished: true, publishedAt: new Date().toISOString() };
     if (portfolioId) return db.updatePortfolioById(portfolioId, patch);
     return db.updatePortfolio(patch);
   },
 
+  // NOTE: the backend has no unpublish endpoint yet. This stays mock-only —
+  // see useUnpublishPortfolio / isBackendPortfolioId guard in publish-page.tsx.
   async unpublish(portfolioId?: string): Promise<Portfolio> {
     await delay(MOCK_DELAY);
     const patch = { isPublished: false };
@@ -327,8 +343,19 @@ export const portfolioApi = {
   },
 
   async getPublic(slug: string): Promise<PublicPortfolioData | null> {
-    await delay(MOCK_DELAY);
-    return db.getPublicPortfolio(slug);
+    const response = await request<{ portfolio: BackendPortfolioLike }>(
+      `/public/${encodeURIComponent(slug)}`
+    );
+    return {
+      portfolio: backendToFrontendPortfolio(response.portfolio),
+      projects: [],
+      experiences: [],
+      skills: [],
+      services: [],
+      certifications: [],
+      testimonials: [],
+      gallery: [],
+    };
   },
 };
 
