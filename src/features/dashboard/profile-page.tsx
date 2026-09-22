@@ -19,7 +19,6 @@ import {
   Mail,
   Briefcase,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import { usePortfolio, useUpdatePortfolio } from '@/lib/query/hooks';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';

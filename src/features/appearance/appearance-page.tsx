@@ -25,7 +25,7 @@ import {
 } from 'lucide-react';
 import { usePortfolio, useUpdatePortfolio } from '@/lib/query/hooks';
 import { templateList } from '@/lib/presets/templates';
-import { colorPaletteList, colorPalettes } from '@/lib/presets/colors';
+import { colorPaletteList } from '@/lib/presets/colors';
 import { animationPresetList } from '@/lib/presets/animations';
 import { professionList, professionPresets } from '@/lib/presets/professions';
 import { fontPresetList } from '@/lib/presets/fonts';

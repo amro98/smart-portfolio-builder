@@ -345,7 +345,7 @@ export default function ProjectsPage() {
         );
       }
     },
-    [editingProject, createProject, updateProject, form]
+    [editingProject, createProject, updateProject, form, projects]
   );
 
   const handleDelete = useCallback(async () => {

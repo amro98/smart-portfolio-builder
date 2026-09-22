@@ -11,13 +11,25 @@ import { authRouter } from "./modules/auth/auth.router";
 import { portfoliosRouter } from "./modules/portfolios/portfolios.router";
 import { publicRouter } from "./modules/public/public.router";
 
+// CORS_ORIGIN may be a single origin or a comma-separated list (e.g. a deployed
+// frontend plus a local dev origin during a migration window).
+function parseAllowedOrigins(): string[] {
+  const raw = process.env.CORS_ORIGIN ?? "http://localhost:5173";
+
+  return raw
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+}
+
 export function createApp() {
   const app = express();
+  const allowedOrigins = parseAllowedOrigins();
 
   app.use(helmet());
   app.use(
     cors({
-      origin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
+      origin: allowedOrigins,
       credentials: true,
     })
   );

@@ -1,7 +1,5 @@
 import { Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { usePublicPortfolio } from "@/lib/query/hooks";
 import { PortfolioRenderer } from "@/features/public-portfolio/portfolio-renderer";
 import type { Portfolio, PublicPortfolioData } from "@/types";
 
@@ -11,41 +9,18 @@ type Props = {
 };
 
 export function AppearanceLivePreview({ portfolio, dir = 'ltr' }: Props) {
-  const slug =
-    (portfolio as any)?.slug ||
-    (portfolio as any)?.profile?.slug ||
-    "alex-morgan";
-
-  const { data: publicData, isLoading } = usePublicPortfolio(slug);
-
-  // While loading the public data, show a skeleton.
-  if (isLoading || !publicData) {
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <Eye className="h-5 w-5 text-muted-foreground" />
-            <CardTitle className="text-lg">Live Preview</CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="rounded-lg border border-border/60 overflow-hidden">
-            <Skeleton className="h-[360px] w-full" />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // IMPORTANT:
-  // Use the real public data (images/content), but override appearance settings
-  // with the current portfolio state so changes reflect immediately.
+  // Render straight from the current draft (it already carries its own projects/
+  // experiences/etc.) instead of the public endpoint, which 404s until the portfolio
+  // is actually published and would leave this preview stuck on a loading state.
   const dataObj: PublicPortfolioData = {
-    ...publicData,
-    portfolio: {
-      ...publicData.portfolio,
-      ...portfolio,
-    },
+    portfolio,
+    projects: portfolio.projects,
+    experiences: portfolio.experiences,
+    skills: portfolio.skills,
+    services: portfolio.services,
+    certifications: portfolio.certifications,
+    testimonials: portfolio.testimonials,
+    gallery: portfolio.gallery,
   };
 
   return (

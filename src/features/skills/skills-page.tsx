@@ -101,7 +101,7 @@ export default function SkillsPage() {
         sorted[key] = groups[key];
       });
     return sorted;
-  }, [skills]);
+  }, [skills, t]);
 
   const openCreateDialog = useCallback(() => {
     setEditingSkill(null);
@@ -150,7 +150,7 @@ export default function SkillsPage() {
         );
       }
     },
-    [editingSkill, createSkill, updateSkill, form]
+    [editingSkill, createSkill, updateSkill, form, skills, t]
   );
 
   const handleDelete = useCallback(async () => {
@@ -162,7 +162,7 @@ export default function SkillsPage() {
     } catch {
       toast.error(t("skills.errorDeletingSkill"));
     }
-  }, [deleteTarget, deleteSkill]);
+  }, [deleteTarget, deleteSkill, t]);
 
   if (isLoading) {
     return (

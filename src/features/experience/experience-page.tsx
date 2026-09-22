@@ -295,7 +295,7 @@ export default function ExperiencePage() {
         );
       }
     },
-    [editingExperience, createExperience, updateExperience, form]
+    [editingExperience, createExperience, updateExperience, form, experiences]
   );
 
   const handleDelete = useCallback(async () => {

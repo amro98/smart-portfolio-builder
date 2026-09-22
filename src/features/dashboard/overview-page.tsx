@@ -12,7 +12,6 @@ import {
   UserCog,
   ExternalLink,
   Send,
-  FileEdit,
   Palette,
   Clock,
 } from 'lucide-react';
@@ -21,7 +20,6 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
 import { PageHeader } from '@/components/shared/page-header';
 import { LoadingPage } from '@/components/shared/loading-card';
 import { ErrorState } from '@/components/shared/error-state';

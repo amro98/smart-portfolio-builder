@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -31,7 +30,6 @@ import {
   Info,
 } from 'lucide-react';
 import { usePortfolio, useUpdatePortfolio } from '@/lib/query/hooks';
-import { SECTION_LABELS } from '@/lib/constants';
 import { useI18n } from '@/lib/i18n';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

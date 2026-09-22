@@ -7,16 +7,7 @@ import {
   ArrowRight,
   Check,
   Layers,
-  User,
   Briefcase,
-  Code,
-  Stethoscope,
-  Scale,
-  Palette,
-  Camera,
-  Heart,
-  GraduationCap,
-  Building,
   Sparkles,
   LayoutDashboard,
   FolderOpen,
@@ -242,8 +233,6 @@ export default function OnboardingPage() {
     navigate,
   ]);
 
-  const progressValue = ((currentStep + 1) / 3) * 100;
-
   return (
     <div className="min-h-screen bg-muted/40">
       <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-8 sm:py-12">
@@ -337,7 +326,6 @@ export default function OnboardingPage() {
               )}
               {currentStep === 1 && (
                 <StepStyle
-                  profession={profession}
                   themeMode={themeMode}
                   setThemeMode={setThemeMode}
                   colorPaletteId={colorPaletteId}
@@ -518,7 +506,6 @@ function StepProfile({
 }
 
 function StepStyle({
-  profession,
   themeMode,
   setThemeMode,
   colorPaletteId,
@@ -528,7 +515,6 @@ function StepStyle({
   recommendedColor,
   recommendedAnimation,
 }: {
-  profession: ProfessionCategory;
   themeMode: ThemeMode;
   setThemeMode: (v: ThemeMode) => void;
   colorPaletteId: ColorPaletteId;

@@ -18,7 +18,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -61,7 +60,7 @@ export default function PublishPage() {
       { label: t('publish.checklist.section'), passed: hasVisibleSection },
       { label: t('publish.checklist.contact'), passed: hasContactMethod },
     ];
-  }, [portfolio]);
+  }, [portfolio, t]);
 
   const allChecksPassed = checklist.every((item) => item.passed);
 

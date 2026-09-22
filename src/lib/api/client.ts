@@ -1,4 +1,5 @@
 import { generateId } from '@/lib/utils';
+import { useAuthStore } from '@/store';
 import type {
   Portfolio, Project, Experience, Skill, Service,
   Certification, Testimonial, GalleryItem, AuthResponse, PublicPortfolioData,
@@ -251,6 +252,12 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   }
 
   if (!response.ok) {
+    // A 401 anywhere means the session cookie is missing/expired. Flip auth state so
+    // AuthGuard redirects to /login instead of the page quietly failing every request.
+    if (response.status === 401 && useAuthStore.getState().isAuthenticated) {
+      useAuthStore.getState().logout();
+    }
+
     const errorMessage =
       typeof responseBody === 'object' &&
       responseBody !== null &&

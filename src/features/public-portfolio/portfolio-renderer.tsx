@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence, useInView, type Variants } from 'framer-motion';
+import { motion, AnimatePresence, useInView, type Variants } from 'framer-motion';
 import {
   MapPin, Mail, ExternalLink, Github, Linkedin, Twitter,
   Instagram, Globe, Youtube, ArrowRight, Star, Calendar,
