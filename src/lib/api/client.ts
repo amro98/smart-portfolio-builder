@@ -1,5 +1,6 @@
 import { generateId } from '@/lib/utils';
 import { useAuthStore } from '@/store';
+import { ALL_SECTIONS, DEFAULT_SECTION_VISIBILITY } from '@/lib/constants';
 import type {
   Portfolio, Project, Experience, Skill, Service,
   Certification, Testimonial, GalleryItem, AuthResponse, PublicPortfolioData,
@@ -8,26 +9,6 @@ import type {
 } from '@/types';
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:4000').replace(/\/+$/, '');
-const DEFAULT_SECTION_ORDER: SectionId[] = [
-  'hero',
-  'about',
-  'projects',
-  'experience',
-  'skills',
-  'contact',
-];
-const DEFAULT_SECTION_VISIBILITY: Record<SectionId, boolean> = {
-  hero: true,
-  about: true,
-  projects: true,
-  experience: true,
-  skills: true,
-  services: false,
-  certifications: false,
-  testimonials: false,
-  gallery: false,
-  contact: true,
-};
 const DEFAULT_SOCIAL_LINKS: Portfolio['socialLinks'] = {
   linkedin: '',
   github: '',
@@ -90,15 +71,23 @@ function normalizeSocialLinks(value: unknown): Portfolio['socialLinks'] {
   };
 }
 
+// Every portfolio's sectionOrder must always contain exactly the canonical ALL_SECTIONS
+// set. Sections a user has already ordered keep their position; any section missing from
+// stored data (an older portfolio, or one created before a section existed) is appended
+// in canonical order instead of silently disappearing from Sections/Appearance/wizard/renderer.
 function normalizeSectionOrder(value: unknown): SectionId[] {
-  if (!Array.isArray(value)) return [...DEFAULT_SECTION_ORDER];
+  const stored = Array.isArray(value)
+    ? value.filter(
+        (section, index, all): section is SectionId =>
+          typeof section === 'string' &&
+          (ALL_SECTIONS as string[]).includes(section) &&
+          all.indexOf(section) === index
+      )
+    : [];
 
-  const sections = value.filter(
-    (section): section is SectionId =>
-      typeof section === 'string' && section in DEFAULT_SECTION_VISIBILITY
-  );
+  const missing = ALL_SECTIONS.filter((section) => !stored.includes(section));
 
-  return sections.length > 0 ? sections : [...DEFAULT_SECTION_ORDER];
+  return [...stored, ...missing];
 }
 
 function normalizeSectionVisibility(value: unknown): Record<SectionId, boolean> {
@@ -167,7 +156,7 @@ export function backendToFrontendPortfolio(record: BackendPortfolioLike): Portfo
     fontPresetId: 'professional',
     themeMode: 'light',
     customAccentColor: '',
-    sectionOrder: [...DEFAULT_SECTION_ORDER],
+    sectionOrder: [...ALL_SECTIONS],
     sectionVisibility: { ...DEFAULT_SECTION_VISIBILITY },
     isPublished: record.status === 'PUBLISHED',
     publishedAt: record.publishedAt,
@@ -217,11 +206,30 @@ export function frontendToBackendUpdate(portfolio: Portfolio) {
     stringValue(portfolio.title).trim() ||
     'Untitled Portfolio';
 
+  // isPublished/publishedAt are derived from the backend's authoritative `status` column
+  // (see backendToFrontendPortfolio) on every read. Never write them back into the `data`
+  // blob — a stale copy from before a publish/unpublish would otherwise sit in storage
+  // and could shadow the real state if normalization logic ever changes.
+  const dataWithoutPublishState: Partial<Portfolio> = { ...portfolio };
+  delete dataWithoutPublishState.isPublished;
+  delete dataWithoutPublishState.publishedAt;
+
   return {
     name,
     slug: stringValue(portfolio.slug),
-    data: { ...portfolio },
+    data: dataWithoutPublishState,
   };
+}
+
+// Resolves a possibly-relative, backend-hosted media URL (e.g. "/uploads/x.jpg") against
+// the API origin, so it never accidentally resolves against the frontend's own origin
+// (which happens whenever the frontend and backend are on different domains). Already-
+// absolute URLs (http/https/data) and empty values pass through unchanged. Use this for
+// every image sourced from Portfolio data instead of rendering the raw stored value.
+export function resolveMediaUrl(url: string | null | undefined): string {
+  if (!url) return '';
+  if (/^(https?:)?\/\//i.test(url) || url.startsWith('data:')) return url;
+  return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -232,7 +240,11 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       ...options,
       credentials: 'include',
       headers: {
-        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+        // FormData bodies (file uploads) must NOT get an explicit Content-Type — the
+        // browser needs to set its own multipart boundary.
+        ...(options.body && !(options.body instanceof FormData)
+          ? { 'Content-Type': 'application/json' }
+          : {}),
         ...options.headers,
       },
     });
@@ -351,6 +363,14 @@ export const portfolioApi = {
     return backendToFrontendPortfolio(response.portfolio);
   },
 
+  async unpublish(portfolioId: string): Promise<Portfolio> {
+    const response = await request<{ portfolio: BackendPortfolio }>(
+      `/portfolios/${encodeURIComponent(portfolioId)}/unpublish`,
+      { method: 'POST' }
+    );
+    return backendToFrontendPortfolio(response.portfolio);
+  },
+
   async getPublic(slug: string): Promise<PublicPortfolioData | null> {
     const response = await request<{ portfolio: BackendPortfolioLike }>(
       `/public/${encodeURIComponent(slug)}`
@@ -367,5 +387,22 @@ export const portfolioApi = {
       testimonials: portfolio.testimonials,
       gallery: portfolio.gallery,
     };
+  },
+};
+
+export const ALLOWED_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+export const MAX_IMAGE_SIZE_BYTES = 5 * 1024 * 1024;
+
+export const uploadsApi = {
+  // Uploads a durable, publicly-resolvable image and returns its absolute URL.
+  // Used instead of blob:/object URLs, which only live in the current browser tab.
+  async uploadImage(file: File): Promise<{ url: string }> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    return request<{ url: string }>('/uploads/image', {
+      method: 'POST',
+      body: formData,
+    });
   },
 };

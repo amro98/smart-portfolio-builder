@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'react-router-dom';
 import { portfolioApi } from '@/lib/api/client';
 import { useI18n } from '@/lib/i18n';
+import { useAuthStore } from '@/store';
 import type {
   Portfolio, Project, Experience, Skill, Service, Certification,
   Testimonial, GalleryItem, CreatePortfolioInput,
@@ -9,8 +10,6 @@ import type {
 import { toast } from 'sonner';
 import { generateId } from '@/lib/utils';
 import { useCurrentPortfolioId } from '@/app/providers/portfolio-id-provider';
-
-const portfoliosQueryKey = ['portfolios'] as const;
 
 // Resolves the active portfolio id the same way across every portfolio-scoped hook:
 // an explicit argument wins, then the route param, then the nearest PortfolioIdProvider.
@@ -20,28 +19,51 @@ function useResolvedPortfolioId(portfolioId?: string): string | undefined {
   return portfolioId ?? routePortfolioId ?? contextId;
 }
 
+// The portfolios LIST is per-user private data. Keying it only ['portfolios'] let one
+// user's list render — even briefly, from cache — for whichever account logs in next.
+// Scoping the key by the current user id means a different user never has a cache hit
+// against another user's entry in the first place, regardless of query-cache clearing.
+function usePortfoliosQueryKey() {
+  const userId = useAuthStore((s) => s.user?.id);
+  return ['portfolios', userId] as const;
+}
+
+// True once the initial /auth/me check has resolved AND it resolved to a real, logged-in
+// user. Authenticated queries must not run before either condition holds.
+function useIsAuthReady(): boolean {
+  const authChecked = useAuthStore((s) => s.authChecked);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  return authChecked && isAuthenticated;
+}
+
 export function usePortfolios() {
+  const queryKey = usePortfoliosQueryKey();
+  const isAuthReady = useIsAuthReady();
+
   return useQuery({
-    queryKey: portfoliosQueryKey,
+    queryKey,
     queryFn: portfolioApi.list,
+    enabled: isAuthReady,
   });
 }
 
 export function useCreatePortfolio() {
   const qc = useQueryClient();
+  const queryKey = usePortfoliosQueryKey();
 
   return useMutation({
     mutationFn: (input: CreatePortfolioInput) => portfolioApi.create(input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: portfoliosQueryKey }),
+    onSuccess: () => qc.invalidateQueries({ queryKey }),
   });
 }
 
 export function useDeletePortfolio() {
   const qc = useQueryClient();
+  const queryKey = usePortfoliosQueryKey();
 
   return useMutation({
     mutationFn: (portfolioId: string) => portfolioApi.remove(portfolioId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: portfoliosQueryKey }),
+    onSuccess: () => qc.invalidateQueries({ queryKey }),
     onError: (error) => {
       toast.error(error instanceof Error ? error.message : 'Failed to delete portfolio');
     },
@@ -52,17 +74,19 @@ export function useDeletePortfolio() {
 // nearest PortfolioIdProvider context value.
 export function usePortfolio(portfolioId?: string) {
   const id = useResolvedPortfolioId(portfolioId);
+  const isAuthReady = useIsAuthReady();
 
   return useQuery({
     queryKey: ['portfolio', id],
     queryFn: () => portfolioApi.get(id as string),
-    enabled: !!id,
+    enabled: isAuthReady && !!id,
   });
 }
 
 export function useUpdatePortfolio(portfolioId?: string) {
   const id = useResolvedPortfolioId(portfolioId);
   const qc = useQueryClient();
+  const portfoliosKey = usePortfoliosQueryKey();
   const { t } = useI18n();
 
   return useMutation({
@@ -79,7 +103,7 @@ export function useUpdatePortfolio(portfolioId?: string) {
       qc.setQueryData(['portfolio', id], portfolio);
       await Promise.all([
         qc.invalidateQueries({ queryKey: ['portfolio', id] }),
-        qc.invalidateQueries({ queryKey: portfoliosQueryKey }),
+        qc.invalidateQueries({ queryKey: portfoliosKey }),
       ]);
       toast.success(t('toast.portfolio.updated'));
     },
@@ -90,6 +114,7 @@ export function useUpdatePortfolio(portfolioId?: string) {
 export function usePublishPortfolio() {
   const id = useResolvedPortfolioId();
   const qc = useQueryClient();
+  const portfoliosKey = usePortfoliosQueryKey();
   const { t } = useI18n();
 
   return useMutation({
@@ -100,9 +125,34 @@ export function usePublishPortfolio() {
     onSuccess: (portfolio) => {
       qc.setQueryData(['portfolio', id], portfolio);
       qc.invalidateQueries({ queryKey: ['portfolio', id] });
-      qc.invalidateQueries({ queryKey: portfoliosQueryKey });
+      qc.invalidateQueries({ queryKey: portfoliosKey });
+      qc.invalidateQueries({ queryKey: ['public-portfolio', portfolio.slug] });
       toast.success(t('toast.portfolio.published'));
     },
+  });
+}
+
+export function useUnpublishPortfolio() {
+  const id = useResolvedPortfolioId();
+  const qc = useQueryClient();
+  const portfoliosKey = usePortfoliosQueryKey();
+  const { t } = useI18n();
+
+  return useMutation({
+    mutationFn: () => {
+      if (!id) throw new Error('No portfolio selected');
+      return portfolioApi.unpublish(id);
+    },
+    onSuccess: (portfolio) => {
+      qc.setQueryData(['portfolio', id], portfolio);
+      qc.invalidateQueries({ queryKey: ['portfolio', id] });
+      qc.invalidateQueries({ queryKey: portfoliosKey });
+      // The portfolio is no longer PUBLISHED — drop any cached public view of it so a
+      // visitor (or the owner checking /u/:slug) can't see a stale "still live" response.
+      qc.invalidateQueries({ queryKey: ['public-portfolio', portfolio.slug] });
+      toast.success(t('toast.portfolio.unpublished'));
+    },
+    onError: () => toast.error(t('toast.portfolio.unpublishFailed')),
   });
 }
 
@@ -147,10 +197,11 @@ function createPortfolioListHooks<TItem extends { id: string; portfolioId: strin
 
   function useList(portfolioId?: string) {
     const id = useResolvedPortfolioId(portfolioId);
+    const isAuthReady = useIsAuthReady();
     return useQuery({
       queryKey: ['portfolio', id],
       queryFn: () => portfolioApi.get(id as string),
-      enabled: !!id,
+      enabled: isAuthReady && !!id,
       select: getList,
     });
   }
@@ -158,6 +209,7 @@ function createPortfolioListHooks<TItem extends { id: string; portfolioId: strin
   function useCreate() {
     const id = useResolvedPortfolioId();
     const qc = useQueryClient();
+    const portfoliosKey = usePortfoliosQueryKey();
     const { t } = useI18n();
     return useMutation({
       mutationFn: async (data: Omit<TItem, 'id' | 'portfolioId'>) => {
@@ -169,7 +221,7 @@ function createPortfolioListHooks<TItem extends { id: string; portfolioId: strin
       },
       onSuccess: (portfolio) => {
         qc.setQueryData(['portfolio', id], portfolio);
-        qc.invalidateQueries({ queryKey: portfoliosQueryKey });
+        qc.invalidateQueries({ queryKey: portfoliosKey });
         toast.success(t(messages.created));
       },
       onError: () => toast.error(t(messages.createFailed)),
@@ -179,6 +231,7 @@ function createPortfolioListHooks<TItem extends { id: string; portfolioId: strin
   function useUpdate() {
     const id = useResolvedPortfolioId();
     const qc = useQueryClient();
+    const portfoliosKey = usePortfoliosQueryKey();
     const { t } = useI18n();
     return useMutation({
       mutationFn: async ({ id: itemId, data }: { id: string; data: Partial<TItem> }) => {
@@ -189,7 +242,7 @@ function createPortfolioListHooks<TItem extends { id: string; portfolioId: strin
       },
       onSuccess: (portfolio) => {
         qc.setQueryData(['portfolio', id], portfolio);
-        qc.invalidateQueries({ queryKey: portfoliosQueryKey });
+        qc.invalidateQueries({ queryKey: portfoliosKey });
         toast.success(t(messages.updated));
       },
       onError: () => toast.error(t(messages.updateFailed)),
@@ -199,6 +252,7 @@ function createPortfolioListHooks<TItem extends { id: string; portfolioId: strin
   function useDelete() {
     const id = useResolvedPortfolioId();
     const qc = useQueryClient();
+    const portfoliosKey = usePortfoliosQueryKey();
     const { t } = useI18n();
     return useMutation({
       mutationFn: async (itemId: string) => {
@@ -209,7 +263,7 @@ function createPortfolioListHooks<TItem extends { id: string; portfolioId: strin
       },
       onSuccess: (portfolio) => {
         qc.setQueryData(['portfolio', id], portfolio);
-        qc.invalidateQueries({ queryKey: portfoliosQueryKey });
+        qc.invalidateQueries({ queryKey: portfoliosKey });
         toast.success(t(messages.deleted));
       },
       onError: () => toast.error(t(messages.deleteFailed)),

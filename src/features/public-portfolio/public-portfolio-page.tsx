@@ -2,8 +2,14 @@ import { useParams, Link } from 'react-router-dom';
 import { usePublicPortfolio } from '@/lib/query/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { ErrorState } from '@/components/shared/error-state';
 import { useI18n } from '@/lib/i18n';
 import { PortfolioRenderer } from './portfolio-renderer';
+
+// The one message client.ts's request() throws when fetch() itself fails (offline, DNS,
+// CORS, server unreachable) — distinct from a well-formed 404 response, which carries the
+// backend's own "Portfolio not found" message instead.
+const NETWORK_ERROR_MESSAGE = 'Unable to reach the server. Please try again.';
 
 function LoadingSkeleton() {
   return (
@@ -68,13 +74,32 @@ function NotFoundState() {
 
 export default function PublicPortfolioPage() {
   const { slug } = useParams<{ slug: string }>();
-  const { data, isLoading, error } = usePublicPortfolio(slug || '');
+  const { data, isLoading, isError, error, refetch } = usePublicPortfolio(slug || '');
 
   if (isLoading) {
     return <LoadingSkeleton />;
   }
 
-  if (error || !data) {
+  if (isError) {
+    const isNetworkError = error instanceof Error && error.message === NETWORK_ERROR_MESSAGE;
+
+    if (isNetworkError) {
+      return (
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <ErrorState
+            message="We couldn't reach the server. Check your connection and try again."
+            onRetry={() => void refetch()}
+          />
+        </div>
+      );
+    }
+
+    // Anything else (404 for a missing slug, or a portfolio that exists but isn't
+    // published yet) — a clean "not found" state, never an indefinite skeleton.
+    return <NotFoundState />;
+  }
+
+  if (!data) {
     return <NotFoundState />;
   }
 

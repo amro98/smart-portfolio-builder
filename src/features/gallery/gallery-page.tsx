@@ -7,6 +7,7 @@ import {
   useGallery, useCreateGalleryItem,
   useUpdateGalleryItem, useDeleteGalleryItem,
 } from '@/lib/query/hooks';
+import { resolveMediaUrl } from '@/lib/api/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -146,7 +147,7 @@ export default function GalleryPage() {
             >
               <div className="aspect-square">
                 <img
-                  src={item.imageUrl}
+                  src={resolveMediaUrl(item.imageUrl)}
                   alt={item.title || t('gallery.imageAlt')}
                   className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
@@ -205,7 +206,7 @@ export default function GalleryPage() {
               {form.watch('imageUrl') && (
                 <div className="mt-2 overflow-hidden rounded-md border">
                   <img
-                    src={form.watch('imageUrl')}
+                    src={resolveMediaUrl(form.watch('imageUrl'))}
                     alt="Preview"
                     className="h-40 w-full object-cover"
                     onError={(e) => {

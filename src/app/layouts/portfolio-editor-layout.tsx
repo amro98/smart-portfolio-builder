@@ -1,22 +1,25 @@
-import { useMemo } from 'react';
-import { Link, Navigate, NavLink, Outlet, useParams } from 'react-router-dom';
+import { Link, Navigate, NavLink, Outlet, useParams, useLocation } from 'react-router-dom';
 import { Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { usePortfolio } from '@/lib/query/hooks';
 import { PortfolioIdProvider } from '@/app/providers/portfolio-id-provider';
 import { LoadingPage } from '@/components/shared/loading-card';
+import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
 
 export default function PortfolioEditorLayout() {
   const { portfolioId } = useParams();
+  const location = useLocation();
+  const { t } = useI18n();
   const { data: portfolio, isLoading, isError } = usePortfolio(portfolioId);
 
-  const previewHref = useMemo(() => {
-    if (portfolio?.slug) {
-      return `/u/${portfolio.slug}`;
-    }
-    return `/portfolios/${portfolioId}/overview`;
-  }, [portfolio?.slug, portfolioId]);
+  // Always the authenticated draft preview — never /u/:slug. A draft portfolio has no
+  // public page yet (or has an outdated one if it was unpublished after a previous
+  // publish), so this must show the latest saved data regardless of publish status.
+  const previewHref = `/portfolios/${portfolioId}/preview`;
+  // The Preview page already IS this view — showing a button that opens the same page
+  // again in a new tab there is redundant. Every other editor page still gets it.
+  const isOnPreviewPage = location.pathname === previewHref;
 
   if (!portfolioId) {
     return <Navigate to="/portfolios" replace />;
@@ -29,33 +32,33 @@ export default function PortfolioEditorLayout() {
   if (isError || !portfolio) {
     return (
       <div className="rounded-lg border border-border bg-card p-10 text-center">
-        <p className="text-sm font-medium text-foreground">Portfolio not found</p>
+        <p className="text-sm font-medium text-foreground">{t('editor.notFound.title')}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          It may have been deleted, or you don't have access to it.
+          {t('editor.notFound.description')}
         </p>
         <Button asChild variant="outline" className="mt-4">
-          <Link to="/portfolios">Back to My Portfolios</Link>
+          <Link to="/portfolios">{t('editor.notFound.backButton')}</Link>
         </Button>
       </div>
     );
   }
 
-  const editorName = portfolio.fullName?.trim() || portfolio.title?.trim() || portfolio.slug || 'Untitled Portfolio';
+  const editorName = portfolio.fullName?.trim() || portfolio.title?.trim() || portfolio.slug || t('editor.untitled');
 
   const editorNavItems = [
-    { label: 'Overview', to: `/portfolios/${portfolioId}/overview` },
-    { label: 'Profile', to: `/portfolios/${portfolioId}/profile` },
-    { label: 'Projects', to: `/portfolios/${portfolioId}/projects` },
-    { label: 'Experience', to: `/portfolios/${portfolioId}/experience` },
-    { label: 'Skills', to: `/portfolios/${portfolioId}/skills` },
-    { label: 'Services', to: `/portfolios/${portfolioId}/services` },
-    { label: 'Certifications', to: `/portfolios/${portfolioId}/certifications` },
-    { label: 'Testimonials', to: `/portfolios/${portfolioId}/testimonials` },
-    { label: 'Gallery', to: `/portfolios/${portfolioId}/gallery` },
-    { label: 'Appearance', to: `/portfolios/${portfolioId}/appearance` },
-    { label: 'Sections', to: `/portfolios/${portfolioId}/sections` },
-    { label: 'Preview', to: `/portfolios/${portfolioId}/preview` },
-    { label: 'Publish', to: `/portfolios/${portfolioId}/publish` },
+    { labelKey: 'dashboard.nav.overview', to: `/portfolios/${portfolioId}/overview` },
+    { labelKey: 'dashboard.nav.profile', to: `/portfolios/${portfolioId}/profile` },
+    { labelKey: 'dashboard.nav.projects', to: `/portfolios/${portfolioId}/projects` },
+    { labelKey: 'dashboard.nav.experience', to: `/portfolios/${portfolioId}/experience` },
+    { labelKey: 'dashboard.nav.skills', to: `/portfolios/${portfolioId}/skills` },
+    { labelKey: 'dashboard.nav.services', to: `/portfolios/${portfolioId}/services` },
+    { labelKey: 'dashboard.nav.certifications', to: `/portfolios/${portfolioId}/certifications` },
+    { labelKey: 'dashboard.nav.testimonials', to: `/portfolios/${portfolioId}/testimonials` },
+    { labelKey: 'dashboard.nav.gallery', to: `/portfolios/${portfolioId}/gallery` },
+    { labelKey: 'dashboard.nav.appearance', to: `/portfolios/${portfolioId}/appearance` },
+    { labelKey: 'dashboard.nav.sections', to: `/portfolios/${portfolioId}/sections` },
+    { labelKey: 'dashboard.nav.preview', to: `/portfolios/${portfolioId}/preview` },
+    { labelKey: 'dashboard.nav.publish', to: `/portfolios/${portfolioId}/publish` },
   ];
 
   const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -67,31 +70,35 @@ export default function PortfolioEditorLayout() {
     );
 
   return (
-    <div className="grid gap-4 md:grid-cols-[240px_1fr]">
-      <aside className="rounded-lg border border-border bg-card p-3">
+    // h-full (bounded by AppLayout's already-scrolling <main>) + min-h-0 so this grid never
+    // grows taller than the viewport itself; only the content pane below scrolls.
+    <div className="grid h-full min-h-0 gap-4 md:grid-cols-[240px_1fr]">
+      <aside className="overflow-y-auto rounded-lg border border-border bg-card p-3">
         <p className="truncate px-3 pb-3 text-sm font-semibold text-foreground">
-          Editing: {editorName}
+          {t('editor.editing', { name: editorName })}
         </p>
         <nav className="space-y-1">
           {editorNavItems.map((item) => (
             <NavLink key={item.to} to={item.to} className={navLinkClass}>
-              {item.label}
+              {t(item.labelKey)}
             </NavLink>
           ))}
         </nav>
       </aside>
 
-      <section className="min-w-0 rounded-lg border border-border bg-card">
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-sm font-medium text-muted-foreground">Portfolio Editor</h2>
-          <Button asChild size="sm" variant="outline">
-            <Link to={previewHref} target="_blank" rel="noreferrer">
-              <Eye className="mr-2 h-4 w-4" />
-              Preview
-            </Link>
-          </Button>
+      <section className="flex min-h-0 min-w-0 flex-col rounded-lg border border-border bg-card">
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
+          <h2 className="text-sm font-medium text-muted-foreground">{t('editor.portfolioEditor')}</h2>
+          {!isOnPreviewPage && (
+            <Button asChild size="sm" variant="outline">
+              <Link to={previewHref} target="_blank" rel="noreferrer">
+                <Eye className="mr-2 h-4 w-4" />
+                {t('common.preview')}
+              </Link>
+            </Button>
+          )}
         </div>
-        <div className="p-4 md:p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 md:p-5">
           <PortfolioIdProvider portfolioId={portfolioId}>
             <Outlet />
           </PortfolioIdProvider>

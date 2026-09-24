@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { toast } from 'sonner';
 import {
   Linkedin,
   Github,
@@ -18,8 +19,10 @@ import {
   CalendarDays,
   Mail,
   Briefcase,
+  Loader2,
 } from 'lucide-react';
 import { usePortfolio, useUpdatePortfolio } from '@/lib/query/hooks';
+import { uploadsApi, resolveMediaUrl, ALLOWED_IMAGE_MIME_TYPES, MAX_IMAGE_SIZE_BYTES } from '@/lib/api/client';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -57,6 +60,14 @@ const profileSchema = z.object({
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
+
+// The avatar is staged locally (a picked File + an object-URL preview, or an explicit
+// "removed" marker) and only actually uploaded/persisted when the user clicks Save
+// Changes, alongside every other field, in one PATCH — never on its own.
+type StagedAvatar =
+  | { type: 'unchanged' }
+  | { type: 'file'; file: File; previewUrl: string }
+  | { type: 'removed' };
 
 const SOCIAL_FIELDS = [
   { key: 'linkedin' as const, label: 'profile.socialLinks.fields.linkedin', icon: Linkedin, placeholder: 'https://linkedin.com/in/username' },
@@ -97,7 +108,7 @@ export default function ProfilePage() {
 
   const updatePortfolio = useUpdatePortfolio();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [stagedAvatar, setStagedAvatar] = useState<StagedAvatar>({ type: 'unchanged' });
 
   const {
     register,
@@ -129,52 +140,103 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (portfolio) {
-      reset({
-        fullName: portfolio.fullName ?? '',
-        title: portfolio.title ?? '',
-        bio: portfolio.bio ?? '',
-        location: portfolio.location ?? '',
-        slug: portfolio.slug ?? '',
-        ctaLabel: portfolio.ctaLabel ?? '',
-        ctaLink: portfolio.ctaLink ?? '',
-        socialLinks: {
-          linkedin: portfolio.socialLinks?.linkedin ?? '',
-          github: portfolio.socialLinks?.github ?? '',
-          twitter: portfolio.socialLinks?.twitter ?? '',
-          instagram: portfolio.socialLinks?.instagram ?? '',
-          behance: portfolio.socialLinks?.behance ?? '',
-          dribbble: portfolio.socialLinks?.dribbble ?? '',
-          website: portfolio.socialLinks?.website ?? '',
-          youtube: portfolio.socialLinks?.youtube ?? '',
-        },
-      });
-      setAvatarPreview(portfolio.avatarUrl || null);
-    }
+    if (!portfolio) return;
+    // A background refetch (e.g. another tab, a query invalidation elsewhere) must never
+    // clobber edits the user hasn't saved yet — only resync when there's nothing staged.
+    if (isDirty || stagedAvatar.type !== 'unchanged') return;
+
+    reset({
+      fullName: portfolio.fullName ?? '',
+      title: portfolio.title ?? '',
+      bio: portfolio.bio ?? '',
+      location: portfolio.location ?? '',
+      slug: portfolio.slug ?? '',
+      ctaLabel: portfolio.ctaLabel ?? '',
+      ctaLink: portfolio.ctaLink ?? '',
+      socialLinks: {
+        linkedin: portfolio.socialLinks?.linkedin ?? '',
+        github: portfolio.socialLinks?.github ?? '',
+        twitter: portfolio.socialLinks?.twitter ?? '',
+        instagram: portfolio.socialLinks?.instagram ?? '',
+        behance: portfolio.socialLinks?.behance ?? '',
+        dribbble: portfolio.socialLinks?.dribbble ?? '',
+        website: portfolio.socialLinks?.website ?? '',
+        youtube: portfolio.socialLinks?.youtube ?? '',
+      },
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [portfolio, reset]);
+
+  // Release the staged blob: preview URL whenever it's replaced or the component unmounts.
+  useEffect(() => {
+    if (stagedAvatar.type !== 'file') return;
+    return () => URL.revokeObjectURL(stagedAvatar.previewUrl);
+  }, [stagedAvatar]);
 
   const slugValue = watch('slug');
   const fullNameValue = watch('fullName');
 
-  const displayAvatar = avatarPreview || portfolio?.avatarUrl || '';
+  const displayAvatar =
+    stagedAvatar.type === 'file'
+      ? stagedAvatar.previewUrl
+      : stagedAvatar.type === 'removed'
+        ? ''
+        : resolveMediaUrl(portfolio?.avatarUrl);
+
+  const hasUnsavedChanges = isDirty || stagedAvatar.type !== 'unchanged';
+  const isSaving = isSubmitting || updatePortfolio.isPending;
 
   function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    setAvatarPreview(url);
-    updatePortfolio.mutate({ avatarUrl: url });
+
+    if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.type)) {
+      toast.error('Please upload a JPG, PNG, WEBP, or GIF image.');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE_BYTES) {
+      toast.error(`Image must be smaller than ${Math.floor(MAX_IMAGE_SIZE_BYTES / (1024 * 1024))}MB.`);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      return;
+    }
+
+    // Stage only — no upload, no portfolio update, no refetch until Save Changes.
+    if (stagedAvatar.type === 'file') {
+      URL.revokeObjectURL(stagedAvatar.previewUrl);
+    }
+    setStagedAvatar({ type: 'file', file, previewUrl: URL.createObjectURL(file) });
+    if (fileInputRef.current) fileInputRef.current.value = '';
   }
 
   function handleRemoveAvatar() {
-    setAvatarPreview(null);
-    updatePortfolio.mutate({ avatarUrl: '' });
+    if (stagedAvatar.type === 'file') {
+      URL.revokeObjectURL(stagedAvatar.previewUrl);
+    }
+    setStagedAvatar({ type: 'removed' });
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   }
 
-  function onSubmit(values: ProfileFormValues) {
+  async function onSubmit(values: ProfileFormValues) {
+    let avatarUrl = portfolio?.avatarUrl ?? '';
+
+    if (stagedAvatar.type === 'file') {
+      try {
+        const { url } = await uploadsApi.uploadImage(stagedAvatar.file);
+        avatarUrl = url;
+      } catch (error) {
+        // Upload never reached the portfolio update — form values and the staged file
+        // stay exactly as they were so the user can just hit Save again.
+        toast.error(error instanceof Error ? error.message : 'Failed to upload image.');
+        return;
+      }
+    } else if (stagedAvatar.type === 'removed') {
+      avatarUrl = '';
+    }
+
     const payload: Partial<Portfolio> = {
       fullName: values.fullName,
       title: values.title ?? '',
@@ -183,6 +245,7 @@ export default function ProfilePage() {
       slug: values.slug,
       ctaLabel: values.ctaLabel ?? '',
       ctaLink: values.ctaLink ?? '',
+      avatarUrl,
       socialLinks: {
         linkedin: values.socialLinks.linkedin ?? '',
         github: values.socialLinks.github ?? '',
@@ -194,7 +257,19 @@ export default function ProfilePage() {
         youtube: values.socialLinks.youtube ?? '',
       },
     };
-    updatePortfolio.mutate(payload);
+
+    try {
+      await updatePortfolio.mutateAsync(payload);
+    } catch {
+      // useUpdatePortfolio already surfaces a toast; keep form + staged avatar intact.
+      return;
+    }
+
+    if (stagedAvatar.type === 'file') {
+      URL.revokeObjectURL(stagedAvatar.previewUrl);
+    }
+    setStagedAvatar({ type: 'unchanged' });
+    reset(values);
   }
 
   if (isLoading) {
@@ -218,9 +293,13 @@ export default function ProfilePage() {
       >
         <Button
           onClick={handleSubmit(onSubmit)}
-          disabled={!isDirty || isSubmitting || updatePortfolio.isPending}
+          disabled={!hasUnsavedChanges || isSaving}
         >
-          <Save className="mr-2 h-4 w-4" />
+          {isSaving ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Save className="mr-2 h-4 w-4" />
+          )}
           {t('profile.saveChanges')}
         </Button>
       </PageHeader>
@@ -356,7 +435,11 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-4">
               <div className="relative h-28 w-28 overflow-hidden rounded-full border-2 border-muted bg-muted">
-                {displayAvatar ? (
+                {isSaving ? (
+                  <div className="flex h-full w-full items-center justify-center bg-muted">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                  </div>
+                ) : displayAvatar ? (
                   <img
                     src={displayAvatar}
                     alt={fullNameValue || 'Avatar'}
@@ -368,13 +451,17 @@ export default function ProfilePage() {
                   </div>
                 )}
               </div>
+              {stagedAvatar.type !== 'unchanged' && !isSaving && (
+                <p className="text-xs text-muted-foreground">{t('profile.avatar.staged')}</p>
+              )}
 
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/png,image/webp,image/gif"
                 className="hidden"
                 onChange={handleAvatarChange}
+                disabled={isSaving}
               />
 
               <div className="flex gap-2">
@@ -383,6 +470,7 @@ export default function ProfilePage() {
                   variant="outline"
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
+                  disabled={isSaving}
                 >
                   <Camera className="mr-2 h-4 w-4" />
                   {t('profile.avatar.uploadButton')}
@@ -393,6 +481,7 @@ export default function ProfilePage() {
                     variant="outline"
                     size="sm"
                     onClick={handleRemoveAvatar}
+                    disabled={isSaving}
                   >
                     <Trash2 className="mr-2 h-4 w-4" />
                     {t('profile.avatar.removeButton')}

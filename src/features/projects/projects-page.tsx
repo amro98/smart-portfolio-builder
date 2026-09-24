@@ -38,6 +38,7 @@ import {
   useDeleteProject,
   useReorderProjects,
 } from "@/lib/query/hooks";
+import { resolveMediaUrl } from "@/lib/api/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -124,7 +125,7 @@ function SortableProjectCard({
       <div className="relative aspect-video bg-muted overflow-hidden">
         {project.coverImage ? (
           <img
-            src={project.coverImage}
+            src={resolveMediaUrl(project.coverImage)}
             alt={project.title}
             className="h-full w-full object-cover"
           />

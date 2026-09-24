@@ -7,6 +7,7 @@ import {
   useTestimonials, useCreateTestimonial,
   useUpdateTestimonial, useDeleteTestimonial,
 } from '@/lib/query/hooks';
+import { resolveMediaUrl } from '@/lib/api/client';
 import { useI18n } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -201,7 +202,7 @@ export default function TestimonialsPage() {
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
                     {item.avatarUrl ? (
                       <img
-                        src={item.avatarUrl}
+                        src={resolveMediaUrl(item.avatarUrl)}
                         alt={item.clientName}
                         className="h-10 w-10 rounded-full object-cover"
                       />

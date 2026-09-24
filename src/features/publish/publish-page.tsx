@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Globe,
   Copy,
@@ -12,7 +12,7 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { usePortfolio, usePublishPortfolio } from '@/lib/query/hooks';
+import { usePortfolio, usePublishPortfolio, useUnpublishPortfolio } from '@/lib/query/hooks';
 import { useI18n } from '@/lib/i18n';
 import {
   Card,
@@ -27,11 +27,14 @@ import { Separator } from '@/components/ui/separator';
 import { PageHeader } from '@/components/shared/page-header';
 import { LoadingPage } from '@/components/shared/loading-card';
 import { ErrorState } from '@/components/shared/error-state';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { cn } from '@/lib/utils';
 
 export default function PublishPage() {
   const { data: portfolio, isLoading, isError, refetch } = usePortfolio();
   const publishPortfolio = usePublishPortfolio();
+  const unpublishPortfolio = useUnpublishPortfolio();
+  const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
   const { t } = useI18n();
 
   const publicUrl = portfolio
@@ -74,8 +77,9 @@ export default function PublishPage() {
   }
 
   function handleUnpublish() {
-    // The backend doesn't expose an unpublish endpoint yet.
-    toast.info(t('publish.unpublishNotSupported'));
+    unpublishPortfolio.mutate(undefined, {
+      onSuccess: () => setShowUnpublishConfirm(false),
+    });
   }
 
   if (isLoading) {
@@ -223,9 +227,10 @@ export default function PublishPage() {
               <Button
                 variant="destructive"
                 size="lg"
-                onClick={handleUnpublish}
+                onClick={() => setShowUnpublishConfirm(true)}
+                disabled={unpublishPortfolio.isPending}
               >
-                {t('publish.button.unpublish')}
+                {unpublishPortfolio.isPending ? t('publish.button.unpublishing') : t('publish.button.unpublish')}
               </Button>
             </div>
           ) : (
@@ -296,6 +301,16 @@ export default function PublishPage() {
           </div>
         </CardContent>
       </Card>
+
+      <ConfirmDialog
+        open={showUnpublishConfirm}
+        onOpenChange={setShowUnpublishConfirm}
+        title={t('publish.unpublishDialog.title')}
+        description={t('publish.unpublishDialog.description')}
+        confirmLabel={t('publish.unpublishDialog.confirmButton')}
+        onConfirm={handleUnpublish}
+        destructive
+      />
     </div>
   );
 }

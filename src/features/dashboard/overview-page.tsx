@@ -5,15 +5,12 @@ import {
   FolderOpen,
   List,
   Globe,
-  Eye,
   CheckCircle,
   Circle,
   Plus,
   UserCog,
   ExternalLink,
   Send,
-  Palette,
-  Clock,
 } from 'lucide-react';
 import { usePortfolio, useProjects } from '@/lib/query/hooks';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -37,33 +34,6 @@ const item = {
   hidden: { opacity: 0, y: 12 },
   show: { opacity: 1, y: 0 },
 };
-
-const MOCK_ACTIVITY = [
-  {
-    id: '1',
-    icon: UserCog,
-    text: 'Updated profile information',
-    time: '2 hours ago',
-  },
-  {
-    id: '2',
-    icon: FolderOpen,
-    text: 'Added project CloudSync',
-    time: '5 hours ago',
-  },
-  {
-    id: '3',
-    icon: Palette,
-    text: 'Changed color palette to Corporate Blue',
-    time: '1 day ago',
-  },
-  {
-    id: '4',
-    icon: Globe,
-    text: 'Published portfolio',
-    time: '2 days ago',
-  },
-];
 
 export default function OverviewPage() {
   const { t } = useI18n();
@@ -156,12 +126,6 @@ export default function OverviewPage() {
         : 'bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400',
       badge: true,
     },
-    {
-      label: 'overview.stats.views',
-      value: '1,247',
-      icon: Eye,
-      color: 'bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-400',
-    },
   ];
 
   const quickActions = [
@@ -202,7 +166,7 @@ export default function OverviewPage() {
       >
         <motion.div
           variants={item}
-          className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+          className="grid gap-4 grid-cols-1 sm:grid-cols-3"
         >
           {stats.map((stat) => (
             <Card key={stat.label} className="relative overflow-hidden">
@@ -290,33 +254,6 @@ export default function OverviewPage() {
             </Card>
           </motion.div>
         </div>
-
-        <motion.div variants={item}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{t('overview.portfolio.recentActivity')}</CardTitle>
-              <CardDescription>{t('overview.portfolio.recentActivity.description')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {MOCK_ACTIVITY.map((activity) => (
-                  <div key={activity.id} className="flex items-center gap-4">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-                      <activity.icon className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-sm">{activity.text}</p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1 text-xs text-muted-foreground">
-                      <Clock className="h-3 w-3" />
-                      <span>{activity.time}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
       </motion.div>
     </div>
   );

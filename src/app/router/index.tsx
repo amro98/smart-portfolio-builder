@@ -7,7 +7,8 @@ import RegisterPage from '@/features/auth/register-page';
 import ForgotPasswordPage from '@/features/auth/forgot-password-page';
 import MyPortfoliosPage from '@/features/portfolios/my-portfolios-page';
 import CreatePortfolioWizardPage from '@/features/portfolios/create-portfolio-wizard-page';
-import PlaceholderShellPage from '@/features/portfolios/placeholder-shell-page';
+import TemplatesPage from '@/features/templates/templates-page';
+import SettingsPage from '@/features/settings/settings-page';
 import OnboardingPage from '@/features/onboarding/onboarding-page';
 import OverviewPage from '@/features/dashboard/overview-page';
 import ProfilePage from '@/features/dashboard/profile-page';
@@ -22,6 +23,7 @@ import AppearancePage from '@/features/appearance/appearance-page';
 import SectionsPage from '@/features/sections/sections-page';
 import PublishPage from '@/features/publish/publish-page';
 import PreviewPage from '@/features/preview/preview-page';
+import PreviewFramePage from '@/features/preview/preview-frame-page';
 import PublicPortfolioPage from '@/features/public-portfolio/public-portfolio-page';
 import { AuthAwareRedirect, AuthGuard, GuestGuard } from './protected-route';
 
@@ -81,19 +83,11 @@ export const router = createBrowserRouter([
       },
       {
         path: '/templates',
-        element: <PlaceholderShellPage title="Templates" description="Templates catalog placeholder." />,
-      },
-      {
-        path: '/pricing',
-        element: <PlaceholderShellPage title="Pricing" description="Pricing page placeholder." />,
-      },
-      {
-        path: '/billing',
-        element: <PlaceholderShellPage title="Billing" description="Billing page placeholder." />,
+        element: <TemplatesPage />,
       },
       {
         path: '/settings',
-        element: <PlaceholderShellPage title="Settings" description="Settings page placeholder." />,
+        element: <SettingsPage />,
       },
     ],
   },
@@ -106,6 +100,28 @@ export const router = createBrowserRouter([
   {
     path: '/dashboard/*',
     element: <Navigate to="/portfolios" replace />,
+  },
+  {
+    // Pricing/Billing have no real product behind them yet; redirect rather than
+    // show a page pretending the functionality exists.
+    path: '/pricing',
+    element: <Navigate to="/portfolios" replace />,
+  },
+  {
+    path: '/billing',
+    element: <Navigate to="/portfolios" replace />,
+  },
+  {
+    // Chrome-less: no AppLayout, no PortfolioEditorLayout. This is exactly what the
+    // Desktop/Mobile toggle on /portfolios/:id/preview embeds via a real <iframe src>, so
+    // the portfolio renders in a genuinely independent document/viewport — still
+    // authenticated + ownership-checked (usePortfolio -> GET /portfolios/:id), never public.
+    path: '/portfolios/:portfolioId/preview-frame',
+    element: (
+      <AuthGuard>
+        <PreviewFramePage />
+      </AuthGuard>
+    ),
   },
   {
     path: '/u/:slug',

@@ -1,7 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { messages, type AppLocale } from '@/lib/i18n/translations';
-
-type TranslateVars = Record<string, string | number>;
+import { createTranslator, type AppLocale, type TranslateVars } from '@/lib/i18n/translations';
 
 interface LocaleContextValue {
   lang: AppLocale;
@@ -33,24 +31,15 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.dir = dir;
   }, [lang]);
 
-  const value = useMemo<LocaleContextValue>(() => {
-    const dir = lang === 'ar' ? 'rtl' : 'ltr';
-    const t = (key: string, vars?: TranslateVars) => {
-      const template = messages[lang][key] ?? messages.en[key] ?? key;
-      if (!vars) return template;
-      return Object.entries(vars).reduce(
-        (acc, [k, v]) => acc.replaceAll(`{${k}}`, String(v)),
-        template
-      );
-    };
-
-    return {
+  const value = useMemo<LocaleContextValue>(
+    () => ({
       lang,
-      dir,
+      dir: lang === 'ar' ? 'rtl' : 'ltr',
       setLang: setLangState,
-      t,
-    };
-  }, [lang]);
+      t: createTranslator(lang),
+    }),
+    [lang]
+  );
 
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>;
 }

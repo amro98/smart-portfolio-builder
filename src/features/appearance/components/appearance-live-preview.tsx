@@ -45,7 +45,7 @@ export function AppearanceLivePreview({ portfolio, dir = 'ltr' }: Props) {
                 direction: dir,
               }}
             >
-              <PortfolioRenderer data={dataObj} />
+              <PortfolioRenderer data={dataObj} embedded />
             </div>
           </div>
         </div>

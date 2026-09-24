@@ -253,3 +253,38 @@ portfoliosRouter.post("/:id/publish", async (req, res, next) => {
     return next(error);
   }
 });
+
+portfoliosRouter.post("/:id/unpublish", async (req, res, next) => {
+  try {
+    const userId = getAuthenticatedUserId(req);
+
+    const existingPortfolio = await prisma.portfolio.findFirst({
+      where: {
+        id: req.params.id,
+        userId,
+      },
+    });
+
+    if (!existingPortfolio) {
+      return res.status(404).json({
+        error: "Portfolio not found",
+      });
+    }
+
+    // Draft the portfolio again without touching its content — /public/:slug is filtered
+    // on status alone, so this alone is enough to stop exposing it publicly.
+    const portfolio = await prisma.portfolio.update({
+      where: { id: existingPortfolio.id },
+      data: {
+        status: PortfolioStatus.DRAFT,
+        publishedAt: null,
+      },
+    });
+
+    return res.json({
+      portfolio,
+    });
+  } catch (error) {
+    return next(error);
+  }
+});

@@ -2,14 +2,23 @@ import { Languages } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/lib/i18n';
 import { cn } from '@/lib/utils';
+import type { AppLocale } from '@/lib/i18n/translations';
 
 interface LanguageSwitcherProps {
   compact?: boolean;
   className?: string;
+  // Overrides the SaaS app's own language (from useI18n) with an independent language +
+  // setter — used when this switcher controls a portfolio's own viewer language instead of
+  // the dashboard's, so the two never get wired together by accident.
+  lang?: AppLocale;
+  onLanguageChange?: (lang: AppLocale) => void;
 }
 
-export function LanguageSwitcher({ compact = false, className }: LanguageSwitcherProps) {
-  const { lang, setLang, t } = useI18n();
+export function LanguageSwitcher({ compact = false, className, lang: langOverride, onLanguageChange }: LanguageSwitcherProps) {
+  const appLocale = useI18n();
+  const lang = langOverride ?? appLocale.lang;
+  const setLang = onLanguageChange ?? appLocale.setLang;
+  const { t } = appLocale;
 
   return (
     <div className={cn('flex items-center gap-2', className)}>

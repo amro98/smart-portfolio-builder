@@ -12,11 +12,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
 import { cn, formatDate } from '@/lib/utils';
+import { resolveMediaUrl } from '@/lib/api/client';
 import { colorPalettes, type ThemeColors } from '@/lib/presets/colors';
 import { animationPresets } from '@/lib/presets/animations';
 import { fontPresets } from '@/lib/presets/fonts';
 import { toast } from 'sonner';
-import { useI18n } from '@/lib/i18n';
+import { PortfolioLocaleProvider, usePortfolioLocale } from './portfolio-locale';
 import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import type {
   PublicPortfolioData, SectionId, Portfolio, Project,
@@ -25,6 +26,11 @@ import type {
 
 interface PortfolioRendererProps {
   data: PublicPortfolioData;
+  // True when rendered inside another page's own layout (the editor's Preview tab, the
+  // Appearance live-preview card) rather than as the standalone /u/:slug document. In that
+  // case the portfolio's own nav must stay scoped to its preview container instead of
+  // attaching to the real browser viewport, where it would overlap the SaaS app's chrome.
+  embedded?: boolean;
 }
 
 function buildCssVars(colors: ThemeColors): Record<string, string> {
@@ -130,7 +136,7 @@ function HeroSection({
   portfolio: Portfolio;
   animation: (typeof animationPresets)[keyof typeof animationPresets];
 }) {
-  const { t } = useI18n();
+  const { t } = usePortfolioLocale();
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true });
 
@@ -151,7 +157,7 @@ function HeroSection({
       {portfolio.coverUrl ? (
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${portfolio.coverUrl})` }}
+          style={{ backgroundImage: `url(${resolveMediaUrl(portfolio.coverUrl)})` }}
         >
           <div className="absolute inset-0 bg-black/60" />
         </div>
@@ -167,7 +173,7 @@ function HeroSection({
             className="mb-8"
           >
             <img
-              src={portfolio.avatarUrl}
+              src={resolveMediaUrl(portfolio.avatarUrl)}
               alt={portfolio.fullName}
               className="w-32 h-32 rounded-full mx-auto object-cover border-4 border-background shadow-xl"
             />
@@ -253,7 +259,7 @@ function AboutSection({
   portfolio: Portfolio;
   animation: (typeof animationPresets)[keyof typeof animationPresets];
 }) {
-  const { t } = useI18n();
+  const { t } = usePortfolioLocale();
 
   return (
     <AnimatedSection
@@ -305,7 +311,7 @@ function ProjectsSection({
   projects: Project[];
   animation: (typeof animationPresets)[keyof typeof animationPresets];
 }) {
-  const { t } = useI18n();
+  const { t } = usePortfolioLocale();
 
   const published = projects
     .filter((p) => p.status === 'published')
@@ -339,7 +345,7 @@ function ProjectsSection({
               {project.coverImage && (
                 <div className="aspect-video overflow-hidden">
                   <img
-                    src={project.coverImage}
+                    src={resolveMediaUrl(project.coverImage)}
                     alt={project.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
@@ -400,7 +406,7 @@ function ExperienceSection({
   experiences: Experience[];
   animation: (typeof animationPresets)[keyof typeof animationPresets];
 }) {
-  const { t } = useI18n();
+  const { t } = usePortfolioLocale();
 
   const sorted = [...experiences].sort((a, b) => a.order - b.order);
   if (sorted.length === 0) return null;
@@ -489,7 +495,7 @@ function SkillsSection({
   skills: Skill[];
   animation: (typeof animationPresets)[keyof typeof animationPresets];
 }) {
-  const { t } = useI18n();
+  const { t } = usePortfolioLocale();
 
   if (skills.length === 0) return null;
 
@@ -557,7 +563,7 @@ function ServicesSection({
   services: Service[];
   animation: (typeof animationPresets)[keyof typeof animationPresets];
 }) {
-  const { t } = useI18n();
+  const { t } = usePortfolioLocale();
 
   const sorted = [...services].sort((a, b) => a.order - b.order);
   if (sorted.length === 0) return null;
@@ -628,7 +634,7 @@ function CertificationsSection({
   certifications: Certification[];
   animation: (typeof animationPresets)[keyof typeof animationPresets];
 }) {
-  const { t } = useI18n();
+  const { t } = usePortfolioLocale();
 
   const sorted = [...certifications].sort((a, b) => a.order - b.order);
   if (sorted.length === 0) return null;
@@ -706,7 +712,7 @@ function TestimonialsSection({
   testimonials: Testimonial[];
   animation: (typeof animationPresets)[keyof typeof animationPresets];
 }) {
-  const { t } = useI18n();
+  const { t } = usePortfolioLocale();
 
   const sorted = [...testimonials].sort((a, b) => a.order - b.order);
   if (sorted.length === 0) return null;
@@ -752,7 +758,7 @@ function TestimonialsSection({
               <div className="flex items-center gap-3">
                 {testimonial.avatarUrl ? (
                   <img
-                    src={testimonial.avatarUrl}
+                    src={resolveMediaUrl(testimonial.avatarUrl)}
                     alt={testimonial.clientName}
                     className="w-10 h-10 rounded-full object-cover"
                   />
@@ -783,7 +789,7 @@ function GallerySection({
   gallery: GalleryItem[];
   animation: (typeof animationPresets)[keyof typeof animationPresets];
 }) {
-  const { t } = useI18n();
+  const { t } = usePortfolioLocale();
 
   const sorted = [...gallery].sort((a, b) => a.order - b.order);
   if (sorted.length === 0) return null;
@@ -807,7 +813,7 @@ function GallerySection({
               className="group relative break-inside-avoid rounded-xl overflow-hidden"
             >
               <img
-                src={item.imageUrl}
+                src={resolveMediaUrl(item.imageUrl)}
                 alt={item.title}
                 className="w-full h-auto object-cover"
               />
@@ -839,12 +845,32 @@ function ContactSection({
   portfolio: Portfolio;
   animation: (typeof animationPresets)[keyof typeof animationPresets];
 }) {
-  const { t } = useI18n();
+  const { t } = usePortfolioLocale();
   const [formState, setFormState] = useState({ name: '', email: '', message: '' });
 
+  // There is no backend mail/relay service yet, so this hands the message off to the
+  // visitor's own email client (addressed to the portfolio owner) instead of faking a
+  // "sent" confirmation for a message that would otherwise just be discarded.
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success(t('toast.messageSent'));
+
+    if (!portfolio.email) return;
+
+    if (!formState.name.trim() || !formState.message.trim()) {
+      toast.error(t('public.contact.validationError'));
+      return;
+    }
+
+    const subject = `Portfolio contact from ${formState.name.trim()}`;
+    const bodyLines = [
+      formState.message.trim(),
+      '',
+      `— ${formState.name.trim()}${formState.email.trim() ? ` (${formState.email.trim()})` : ''}`,
+    ];
+    const mailtoUrl = `mailto:${portfolio.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyLines.join('\n'))}`;
+
+    window.location.href = mailtoUrl;
+    toast.success(t('toast.messageOpening'));
     setFormState({ name: '', email: '', message: '' });
   };
 
@@ -900,37 +926,41 @@ function ContactSection({
               </div>
             )}
           </div>
-          <div>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Input
-                  placeholder={t('public.contact.namePlaceholder')}
-                  value={formState.name}
-                  onChange={(e) => setFormState((s) => ({ ...s, name: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Input
-                  type="email"
-                  placeholder={t('public.contact.emailPlaceholder')}
-                  value={formState.email}
-                  onChange={(e) => setFormState((s) => ({ ...s, email: e.target.value }))}
-                />
-              </div>
-              <div>
-                <Textarea
-                  placeholder={t('public.contact.messagePlaceholder')}
-                  rows={5}
-                  value={formState.message}
-                  onChange={(e) => setFormState((s) => ({ ...s, message: e.target.value }))}
-                />
-              </div>
-              <Button type="submit" className="w-full">
-                <Send className="w-4 h-4 mr-2" />
-                {t('public.contact.send')}
-              </Button>
-            </form>
-          </div>
+          {portfolio.email && (
+            <div>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div>
+                  <Input
+                    placeholder={t('public.contact.namePlaceholder')}
+                    value={formState.name}
+                    onChange={(e) => setFormState((s) => ({ ...s, name: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div>
+                  <Input
+                    type="email"
+                    placeholder={t('public.contact.emailPlaceholder')}
+                    value={formState.email}
+                    onChange={(e) => setFormState((s) => ({ ...s, email: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Textarea
+                    placeholder={t('public.contact.messagePlaceholder')}
+                    rows={5}
+                    value={formState.message}
+                    onChange={(e) => setFormState((s) => ({ ...s, message: e.target.value }))}
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full">
+                  <Send className="w-4 h-4 mr-2" />
+                  {t('public.contact.send')}
+                </Button>
+              </form>
+            </div>
+          )}
         </div>
       </div>
     </AnimatedSection>
@@ -940,11 +970,13 @@ function ContactSection({
 function NavBar({
   portfolio,
   visibleSections,
+  embedded,
 }: {
   portfolio: Portfolio;
   visibleSections: SectionId[];
+  embedded?: boolean;
 }) {
-  const { t } = useI18n();
+  const { t, lang, setLang } = usePortfolioLocale();
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -963,49 +995,61 @@ function NavBar({
   };
 
   const navSections = visibleSections.filter((s) => s !== 'hero');
+  // Below `lg`, however many sections are enabled, the nav collapses into the hamburger
+  // menu instead of squeezing an unbounded number of labels into one row.
+  const hasInlineNav = navSections.length > 0;
 
   return (
     <nav
       className={cn(
-        'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
-        scrolled
+        'z-50 transition-all duration-300',
+        // Fixed on the real public page (attaches to the browser viewport, floats over
+        // the hero). Sticky when embedded, so it's contained by — and only ever attaches
+        // to — whatever scrolling container the preview is rendered inside.
+        embedded ? 'sticky top-0' : 'fixed top-0 left-0 right-0',
+        scrolled || embedded
           ? 'bg-background/95 backdrop-blur-md border-b border-border/50 shadow-sm'
           : 'bg-transparent'
       )}
     >
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
         <button
           onClick={() => scrollTo('hero')}
-          className={cn(
-            'text-base font-semibold transition-colors cursor-pointer',
-            scrolled ? 'text-foreground' : 'text-foreground'
-          )}
+          className="min-w-0 shrink truncate text-base font-semibold text-foreground transition-colors cursor-pointer"
           style={{ fontFamily: 'var(--heading-family)' }}
         >
           {portfolio.fullName}
         </button>
-        <div className="hidden md:flex items-center gap-1">
-          <LanguageSwitcher compact />
-          {navSections.map((section) => (
-            <button
-              key={section}
-              onClick={() => scrollTo(section)}
-              className="px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors rounded-md hover:bg-accent/50 cursor-pointer"
-            >
-              {t(`sections.${section}`)}
-            </button>
-          ))}
+
+        {hasInlineNav && (
+          <div className="hidden lg:flex min-w-0 flex-1 items-center justify-end gap-0.5 overflow-x-auto">
+            {navSections.map((section) => (
+              <button
+                key={section}
+                onClick={() => scrollTo(section)}
+                className="shrink-0 whitespace-nowrap rounded-md px-2.5 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground cursor-pointer"
+              >
+                {t(`sections.${section}`)}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="hidden lg:flex shrink-0 items-center gap-2">
+          <LanguageSwitcher compact lang={lang} onLanguageChange={setLang} />
           {portfolio.ctaLabel && portfolio.ctaLink && (
-            <a href={portfolio.ctaLink} target="_blank" rel="noopener noreferrer" className="ml-2">
+            <a href={portfolio.ctaLink} target="_blank" rel="noopener noreferrer">
               <Button size="sm">
                 {portfolio.ctaLabel}
               </Button>
             </a>
           )}
         </div>
+
         <button
-          className="md:hidden p-2 text-foreground cursor-pointer"
+          className="shrink-0 p-2 text-foreground cursor-pointer lg:hidden"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          aria-label={mobileMenuOpen ? t('public.nav.closeMenu') : t('public.nav.openMenu')}
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -1016,10 +1060,10 @@ function NavBar({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden bg-background/95 backdrop-blur-md border-b border-border/50 overflow-hidden"
+            className="lg:hidden bg-background/95 backdrop-blur-md border-b border-border/50 overflow-hidden"
           >
-            <div className="px-6 py-4 space-y-1">
-              <LanguageSwitcher className="mb-3" />
+            <div className="px-4 sm:px-6 py-4 space-y-1">
+              <LanguageSwitcher className="mb-3" lang={lang} onLanguageChange={setLang} />
               {navSections.map((section) => (
                 <button
                   key={section}
@@ -1044,7 +1088,7 @@ function NavBar({
   );
 }
 
-function ScrollToTop() {
+function ScrollToTop({ embedded }: { embedded?: boolean }) {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -1054,6 +1098,11 @@ function ScrollToTop() {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // This tracks window scroll, which doesn't reflect an embedded preview's own internal
+  // scroll container, and `fixed` positioning would escape the preview frame the same way
+  // the nav does — it's a non-essential convenience, so it's simplest to just omit it here.
+  if (embedded) return null;
 
   return (
     <AnimatePresence>
@@ -1073,7 +1122,7 @@ function ScrollToTop() {
 }
 
 function Footer({ portfolio }: { portfolio: Portfolio }) {
-  const { t } = useI18n();
+  const { t } = usePortfolioLocale();
 
   return (
     <footer className="py-8 border-t border-border/50">
@@ -1086,7 +1135,18 @@ function Footer({ portfolio }: { portfolio: Portfolio }) {
   );
 }
 
-export function PortfolioRenderer({ data }: PortfolioRendererProps) {
+export function PortfolioRenderer({ data, embedded }: PortfolioRendererProps) {
+  // Isolated from the SaaS app's own language (useI18n/LocaleProvider): every section
+  // below reads the portfolio's language from PortfolioLocaleProvider, never the global one.
+  return (
+    <PortfolioLocaleProvider>
+      <PortfolioRendererContent data={data} embedded={embedded} />
+    </PortfolioLocaleProvider>
+  );
+}
+
+function PortfolioRendererContent({ data, embedded }: PortfolioRendererProps) {
+  const { dir } = usePortfolioLocale();
   const { portfolio, projects, experiences, skills, services, certifications, testimonials, gallery } = data;
 
   const palette = colorPalettes[portfolio.colorPaletteId] || colorPalettes['monochrome'];
@@ -1124,6 +1184,7 @@ export function PortfolioRenderer({ data }: PortfolioRendererProps) {
 
   return (
     <div
+      dir={dir}
       className={cn(resolvedTheme === 'dark' ? 'dark' : '')}
       style={{
         ...cssVars,
@@ -1137,14 +1198,14 @@ export function PortfolioRenderer({ data }: PortfolioRendererProps) {
         color: `hsl(${themeColors.foreground})`,
       } as React.CSSProperties}
     >
-      <NavBar portfolio={portfolio} visibleSections={visibleSections} />
+      <NavBar portfolio={portfolio} visibleSections={visibleSections} embedded={embedded} />
       <main>
         <AnimatePresence mode="sync">
           {visibleSections.map((sectionId) => sectionRenderers[sectionId])}
         </AnimatePresence>
       </main>
       <Footer portfolio={portfolio} />
-      <ScrollToTop />
+      <ScrollToTop embedded={embedded} />
     </div>
   );
 }
