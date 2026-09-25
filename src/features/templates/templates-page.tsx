@@ -16,6 +16,7 @@ import { PageHeader } from '@/components/shared/page-header';
 import { LoadingGrid } from '@/components/shared/loading-card';
 import { ErrorState } from '@/components/shared/error-state';
 import { templateList } from '@/lib/presets/templates';
+import { TemplateThumbnail } from './template-thumbnails';
 import { usePortfolios, useUpdatePortfolio } from '@/lib/query/hooks';
 import { useI18n } from '@/lib/i18n';
 import type { TemplateId } from '@/types';
@@ -96,7 +97,7 @@ export default function TemplatesPage() {
           {templateList.map((template) => (
             <Card key={template.id} className="flex flex-col overflow-hidden">
               <div className="relative aspect-video w-full overflow-hidden bg-muted">
-                <img src={template.previewImage} alt={template.label} className="h-full w-full object-cover" />
+                <TemplateThumbnail templateId={template.id} className="h-full w-full" />
                 {!template.available && (
                   <div className="absolute inset-0 flex items-center justify-center bg-background/70">
                     <Badge variant="secondary">{t('templates.comingSoon')}</Badge>
@@ -112,7 +113,7 @@ export default function TemplatesPage() {
                     </Badge>
                   )}
                 </div>
-                <CardDescription>{template.description}</CardDescription>
+                <CardDescription>{t(`templates.desc.${template.id}`)}</CardDescription>
               </CardHeader>
               <CardContent className="flex-1" />
               <CardFooter className="flex-col items-stretch gap-3">

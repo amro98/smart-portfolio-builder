@@ -4,38 +4,38 @@ export interface TemplateConfig {
   id: TemplateId;
   label: string;
   description: string;
-  previewImage: string;
   available: boolean;
 }
 
+// The single source of truth for which templates exist — consumed by the Templates catalog,
+// the Create Portfolio wizard's Style step, the Appearance page's template selector, and (via
+// `templateId`) PortfolioRenderer's template registry. Each id maps to a genuinely distinct
+// layout implementation under `src/features/public-portfolio/templates/<id>`, not a color
+// variant of the same design.
 export const templates: Record<TemplateId, TemplateConfig> = {
   modern: {
     id: 'modern',
-    label: 'Modern',
-    description: 'Clean, contemporary layout with bold typography and smooth animations',
-    previewImage: 'https://images.pexels.com/photos/196644/pexels-photo-196644.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=1',
+    label: 'Network',
+    description: 'A dark developer portfolio on a living, interactive network canvas — calm typography, tech-icon skills and large alternating project showcases.',
     available: true,
   },
   minimal: {
     id: 'minimal',
-    label: 'Minimal',
-    description: 'Stripped-down elegance focused on content clarity',
-    previewImage: 'https://images.pexels.com/photos/1779487/pexels-photo-1779487.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=1',
-    available: false,
+    label: 'Portrait',
+    description: 'A portrait-led personal portfolio with a two-tone headline, tilted photo cards, a rotating scroll badge and soft rounded project cards.',
+    available: true,
   },
   corporate: {
     id: 'corporate',
-    label: 'Corporate',
-    description: 'Professional and structured for business-oriented portfolios',
-    previewImage: 'https://images.pexels.com/photos/3183150/pexels-photo-3183150.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=1',
-    available: false,
+    label: 'Motion',
+    description: 'A kinetic dark portfolio with a haloed three-column hero, custom cursor, sliding project cards with detail drawers and tabbed experience.',
+    available: true,
   },
   creative: {
     id: 'creative',
-    label: 'Creative',
-    description: 'Expressive and visual-first for artists and creatives',
-    previewImage: 'https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&dpr=1',
-    available: false,
+    label: 'Art Director',
+    description: 'A poster-like studio portfolio with oversized type, a profession-aware illustration, liquid blobs and full-width case-study projects.',
+    available: true,
   },
 };
 

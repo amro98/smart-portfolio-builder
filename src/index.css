@@ -76,3 +76,17 @@
     display: none;
   }
 }
+
+/* Motion portfolio template: hides the native cursor while its custom cursor is active,
+   but keeps the text caret in form fields. The class is only set on fine-pointer devices. */
+html.motion-cursor,
+html.motion-cursor *:not(input):not(textarea):not(select) {
+  cursor: none !important;
+}
+
+/* Portfolio text is user-authored and may not match the visitor's UI language, so each
+   paragraph takes its direction from its own content (keeps "Developer." from rendering
+   as ".Developer" on an Arabic page). */
+.portfolio-bidi :is(p, h1, h2, h3, h4, li, dt, dd, blockquote, figcaption, span) {
+  unicode-bidi: plaintext;
+}

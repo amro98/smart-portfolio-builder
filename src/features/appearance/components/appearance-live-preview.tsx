@@ -1,14 +1,16 @@
 import { Eye } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PortfolioRenderer } from "@/features/public-portfolio/portfolio-renderer";
+import type { AppLocale } from "@/lib/i18n";
 import type { Portfolio, PublicPortfolioData } from "@/types";
 
 type Props = {
   portfolio: Portfolio;
   dir?: 'ltr' | 'rtl';
+  lang?: AppLocale;
 };
 
-export function AppearanceLivePreview({ portfolio, dir = 'ltr' }: Props) {
+export function AppearanceLivePreview({ portfolio, dir = 'ltr', lang }: Props) {
   // Render straight from the current draft (it already carries its own projects/
   // experiences/etc.) instead of the public endpoint, which 404s until the portfolio
   // is actually published and would leave this preview stuck on a loading state.
@@ -45,7 +47,8 @@ export function AppearanceLivePreview({ portfolio, dir = 'ltr' }: Props) {
                 direction: dir,
               }}
             >
-              <PortfolioRenderer data={dataObj} embedded />
+              {/* Same language as the dashboard, so the content direction matches the scale origin above. */}
+              <PortfolioRenderer key={lang} data={dataObj} embedded lang={lang} />
             </div>
           </div>
         </div>

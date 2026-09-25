@@ -24,7 +24,8 @@ import {
   Mail,
 } from 'lucide-react';
 import { usePortfolio, useUpdatePortfolio } from '@/lib/query/hooks';
-import { templateList } from '@/lib/presets/templates';
+import { templateList, templates } from '@/lib/presets/templates';
+import { TemplateThumbnail } from '@/features/templates/template-thumbnails';
 import { colorPaletteList } from '@/lib/presets/colors';
 import { animationPresetList } from '@/lib/presets/animations';
 import { professionList, professionPresets } from '@/lib/presets/professions';
@@ -71,7 +72,7 @@ const SECTION_ICONS: Record<SectionId, React.ElementType> = {
 export default function AppearancePage() {
   const { data: portfolio, isLoading, isError, refetch } = usePortfolio();
   const updatePortfolio = useUpdatePortfolio();
-  const { t, dir } = useI18n();
+  const { t, dir, lang } = useI18n();
   const [accentInput, setAccentInput] = useState('');
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
@@ -167,7 +168,7 @@ export default function AppearancePage() {
       </div>
 
       <div className="grid gap-6 xl:grid-cols-2">
-        <AppearanceLivePreview portfolio={portfolio} dir={dir} />
+        <AppearanceLivePreview portfolio={portfolio} dir={dir} lang={lang} />
 
         <Card>
           <CardHeader>
@@ -202,7 +203,7 @@ export default function AppearancePage() {
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div className="rounded-md border bg-background p-2">
                   <span className="text-muted-foreground">{t('appearance.profession.template')}</span>
-                  <p className="mt-1 font-medium capitalize">{activeProfessionPreset.template}</p>
+                  <p className="mt-1 font-medium">{templates[activeProfessionPreset.template]?.label ?? activeProfessionPreset.template}</p>
                 </div>
                 <div className="rounded-md border bg-background p-2">
                   <span className="text-muted-foreground">{t('appearance.profession.palette')}</span>
@@ -259,23 +260,27 @@ export default function AppearancePage() {
                   whileHover={template.available ? { y: -2 } : undefined}
                   whileTap={template.available ? { scale: 0.98 } : undefined}
                 >
-                  <button
-                    type="button"
-                    disabled={isDisabled}
-                    onClick={() => handleUpdate({ templateId: template.id as TemplateId })}
+                  {/* A div, not a <button>: the preview is the real template, which contains its own buttons/links. */}
+                  <div
+                    role="button"
+                    tabIndex={isDisabled ? -1 : 0}
+                    aria-disabled={isDisabled}
+                    aria-pressed={isSelected}
+                    onClick={() => !isDisabled && handleUpdate({ templateId: template.id as TemplateId })}
+                    onKeyDown={(e) => {
+                      if (isDisabled || (e.key !== 'Enter' && e.key !== ' ')) return;
+                      e.preventDefault();
+                      handleUpdate({ templateId: template.id as TemplateId });
+                    }}
                     className={cn(
-                      'relative w-full overflow-hidden rounded-lg border-2 text-left transition-all',
+                      'relative w-full cursor-pointer overflow-hidden rounded-lg border-2 text-start transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                       isSelected && 'ring-2 ring-primary border-primary',
                       !isSelected && !isDisabled && 'border-border hover:border-foreground/20',
                       isDisabled && 'cursor-not-allowed opacity-60 border-border'
                     )}
                   >
                     <div className="relative aspect-video w-full overflow-hidden bg-muted">
-                      <img
-                        src={template.previewImage}
-                        alt={template.label}
-                        className="h-full w-full object-cover"
-                      />
+                      <TemplateThumbnail templateId={template.id} className="h-full w-full" />
                       {isDisabled && (
                         <div className="absolute inset-0 flex items-center justify-center bg-background/70">
                           <Badge variant="secondary">{t('appearance.template.disabled')}</Badge>
@@ -290,10 +295,10 @@ export default function AppearancePage() {
                     <div className="p-4">
                       <p className="font-medium">{template.label}</p>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        {template.description}
+                        {t(`templates.desc.${template.id}`)}
                       </p>
                     </div>
-                  </button>
+                  </div>
                 </motion.div>
               );
             })}

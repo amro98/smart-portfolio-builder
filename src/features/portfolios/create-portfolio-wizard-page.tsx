@@ -18,6 +18,7 @@ import {
 import { useCreatePortfolio } from '@/lib/query/hooks';
 import { useI18n } from '@/lib/i18n';
 import { templateList } from '@/lib/presets/templates';
+import { TemplateThumbnail } from '@/features/templates/template-thumbnails';
 import { colorPaletteList } from '@/lib/presets/colors';
 import { fontPresetList } from '@/lib/presets/fonts';
 import { animationPresetList } from '@/lib/presets/animations';
@@ -64,7 +65,8 @@ export default function CreatePortfolioWizardPage() {
   function handleProfessionChange(value: ProfessionCategory) {
     setProfession(value);
     const preset = professionPresets[value];
-    setTemplateId(preset.template);
+    // A template picked on /templates is an explicit choice; the profession preset must not override it.
+    if (!preselectedTemplateId) setTemplateId(preset.template);
     setColorPaletteId(preset.colorPalette);
     setAnimationPresetId(preset.animationPreset);
     setSectionVisibility(() => {
@@ -210,20 +212,28 @@ export default function CreatePortfolioWizardPage() {
                     const isSelected = templateId === template.id;
                     const isDisabled = !template.available;
                     return (
-                      <button
+                      // A div, not a <button>: the preview is the real template, which contains its own buttons/links.
+                      <div
                         key={template.id}
-                        type="button"
-                        disabled={isDisabled}
-                        onClick={() => setTemplateId(template.id as TemplateId)}
+                        role="button"
+                        tabIndex={isDisabled ? -1 : 0}
+                        aria-disabled={isDisabled}
+                        aria-pressed={isSelected}
+                        onClick={() => !isDisabled && setTemplateId(template.id as TemplateId)}
+                        onKeyDown={(e) => {
+                          if (isDisabled || (e.key !== 'Enter' && e.key !== ' ')) return;
+                          e.preventDefault();
+                          setTemplateId(template.id as TemplateId);
+                        }}
                         className={cn(
-                          'relative overflow-hidden rounded-lg border-2 text-left transition-all',
+                          'relative cursor-pointer overflow-hidden rounded-lg border-2 text-start transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                           isSelected && 'ring-2 ring-primary border-primary',
                           !isSelected && !isDisabled && 'border-border hover:border-foreground/20',
                           isDisabled && 'cursor-not-allowed opacity-60 border-border'
                         )}
                       >
                         <div className="relative aspect-video w-full overflow-hidden bg-muted">
-                          <img src={template.previewImage} alt={template.label} className="h-full w-full object-cover" />
+                          <TemplateThumbnail templateId={template.id} className="h-full w-full" />
                           {isDisabled && (
                             <div className="absolute inset-0 flex items-center justify-center bg-background/70">
                               <Badge variant="secondary">{t('templates.comingSoon')}</Badge>
@@ -237,9 +247,9 @@ export default function CreatePortfolioWizardPage() {
                         </div>
                         <div className="p-3">
                           <p className="font-medium text-sm">{template.label}</p>
-                          <p className="mt-0.5 text-xs text-muted-foreground">{template.description}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">{t(`templates.desc.${template.id}`)}</p>
                         </div>
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
