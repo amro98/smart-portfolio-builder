@@ -105,7 +105,7 @@ export default function PublishPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <Globe className="h-5 w-5 text-muted-foreground" />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand-soft-foreground"><Globe className="h-5 w-5" /></span>
             <div>
               <CardTitle className="text-lg">{t('publish.status.title')}</CardTitle>
               <CardDescription>
@@ -116,16 +116,15 @@ export default function PublishPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {portfolio.isPublished ? (
-            <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-900/20">
+            <div className="rounded-lg border border-success/25 bg-success-soft p-4">
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-                <span className="font-medium text-green-700 dark:text-green-400">
+                <CheckCircle className="h-5 w-5 text-success-soft-foreground" />
+                <span className="font-medium text-success-soft-foreground">
                   {t('publish.status.live')}
                 </span>
               </div>
               {portfolio.publishedAt && (
-                <p className="mt-1 text-sm text-green-600 dark:text-green-500">
-                  Published on{' '}
+                <p className="mt-1 text-sm text-success-soft-foreground/90">
                   {t('publish.status.publishedOn', {
                     date: new Date(portfolio.publishedAt).toLocaleDateString('en-US', {
                       year: 'numeric',
@@ -137,14 +136,14 @@ export default function PublishPage() {
               )}
             </div>
           ) : (
-            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-800 dark:bg-blue-900/20">
+            <div className="rounded-lg border border-border bg-draft-soft p-4">
               <div className="flex items-center gap-2">
-                <AlertCircle className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                <span className="font-medium text-blue-700 dark:text-blue-400">
+                <AlertCircle className="h-5 w-5 text-draft-soft-foreground" />
+                <span className="font-medium text-draft-soft-foreground">
                   {t('publish.status.notLive')}
                 </span>
               </div>
-              <p className="mt-1 text-sm text-blue-600 dark:text-blue-500">
+              <p className="mt-1 text-sm text-draft-soft-foreground/90">
                 {t('publish.status.unpublishedInfo')}
               </p>
             </div>
@@ -155,7 +154,7 @@ export default function PublishPage() {
           <div className="space-y-2">
             <p className="text-sm font-medium">{t('publish.publicUrlLabel')}</p>
             <div className="flex items-center gap-2">
-              <div className="flex-1 rounded-md border bg-muted/50 px-3 py-2 text-sm">
+              <div dir="ltr" className="min-w-0 flex-1 truncate rounded-md border border-input bg-surface-secondary px-3 py-2 font-mono text-sm text-foreground-secondary">
                 {publicUrl}
               </div>
               <Button variant="outline" size="icon" onClick={handleCopyUrl}>
@@ -189,18 +188,18 @@ export default function PublishPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
+          <div className="space-y-2">
             {checklist.map((item, index) => (
-              <div key={index} className="flex items-center gap-3">
+              <div key={index} className="flex items-center gap-3 rounded-lg border border-divider bg-surface-secondary px-3 py-2.5">
                 {item.passed ? (
-                  <Check className="h-4 w-4 text-green-600" />
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-success-soft"><Check className="h-3.5 w-3.5 text-success-soft-foreground" /></span>
                 ) : (
-                  <X className="h-4 w-4 text-red-500" />
+                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-destructive-soft"><X className="h-3.5 w-3.5 text-destructive-soft-foreground" /></span>
                 )}
                 <span
                   className={cn(
                     'text-sm',
-                    item.passed ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                    item.passed ? 'text-foreground' : 'text-destructive-soft-foreground'
                   )}
                 >
                   {item.label}
@@ -216,8 +215,8 @@ export default function PublishPage() {
           {portfolio.isPublished ? (
             <div className="flex flex-col items-center gap-4 text-center">
               <Badge
-                variant="default"
-                className="bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400"
+                variant="success"
+                className="gap-1.5"
               >
                 {t('publish.badge.published')}
               </Badge>
@@ -236,7 +235,7 @@ export default function PublishPage() {
           ) : (
             <div className="flex flex-col items-center gap-4 text-center">
               {!allChecksPassed && (
-                <div className="flex items-center gap-2 rounded-md border border-yellow-200 bg-yellow-50 px-4 py-2 text-sm text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400">
+                <div className="flex items-center gap-2 rounded-md border border-warning/25 bg-warning-soft px-4 py-2 text-sm text-warning-soft-foreground">
                   <AlertCircle className="h-4 w-4" />
                   <span>{t('publish.notice.incomplete')}</span>
                 </div>
@@ -246,7 +245,7 @@ export default function PublishPage() {
                 onClick={handlePublish}
                 disabled={publishPortfolio.isPending}
               >
-                <Globe className="mr-2 h-4 w-4" />
+                <Globe className="me-2 h-4 w-4" />
                 {publishPortfolio.isPending ? t('publish.button.publishing') : t('publish.button.publish')}
               </Button>
             </div>
@@ -257,7 +256,7 @@ export default function PublishPage() {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">
-            <Share2 className="h-5 w-5 text-muted-foreground" />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand-soft-foreground"><Share2 className="h-5 w-5" /></span>
             <div>
             <CardTitle className="text-lg">{t('publish.share.title')}</CardTitle>
             <CardDescription>
@@ -269,7 +268,7 @@ export default function PublishPage() {
         <CardContent>
           <div className="flex flex-wrap gap-3">
             <Button variant="outline" onClick={handleCopyUrl}>
-              <Copy className="mr-2 h-4 w-4" />
+              <Copy className="me-2 h-4 w-4" />
               {t('publish.share.copy')}
             </Button>
             <Button
@@ -282,7 +281,7 @@ export default function PublishPage() {
               }
               disabled={!portfolio.isPublished}
             >
-              <Twitter className="mr-2 h-4 w-4" />
+              <Twitter className="me-2 h-4 w-4" />
               {t('publish.share.twitter')}
             </Button>
             <Button
@@ -295,7 +294,7 @@ export default function PublishPage() {
               }
               disabled={!portfolio.isPublished}
             >
-              <Linkedin className="mr-2 h-4 w-4" />
+              <Linkedin className="me-2 h-4 w-4" />
               {t('publish.share.linkedin')}
             </Button>
           </div>

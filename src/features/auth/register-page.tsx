@@ -18,6 +18,7 @@ import {
 import { useAuthStore } from "@/store";
 import { authApi } from "@/lib/api/client";
 import { AuthNotice } from "./components/auth-notice";
+import { AuthBrandDecor } from "./components/auth-brand-decor";
 import { AuthDivider, SocialAuthButtons } from "./components/social-auth-buttons";
 import { authErrorCode, authErrorKey, isExistingAccountCode, providerLabel } from "./auth-errors";
 import { passwordRuleError } from "./password-rules";
@@ -107,20 +108,22 @@ export default function RegisterPage() {
     (confirmTouched && confirmPassword && password !== confirmPassword ? t('auth.register.errors.confirmPassword.mismatch') : undefined);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-4xl"
+        className="min-h-screen w-full"
       >
-        <Card className="overflow-hidden border shadow-lg">
-          <div className="grid md:grid-cols-2">
-            <div className="hidden md:flex flex-col justify-between bg-gradient-to-br from-teal-600 to-cyan-700 p-10 text-white">
-              <div>
+        {/* Full-page split: brand panel on one half, form on the other. */}
+        <Card className="min-h-screen overflow-hidden rounded-none border-0 shadow-none">
+          <div className="grid min-h-screen md:grid-cols-2">
+            <div className="relative hidden md:flex flex-col justify-between overflow-hidden bg-sidebar p-10 text-white lg:p-14">
+              <AuthBrandDecor />
+              <div className="relative">
                 <div className="flex items-center gap-3 mb-8">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/20 backdrop-blur-sm">
-                    <Layers className="h-6 w-6 text-white" />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-primary shadow-lg shadow-brand/30 ring-1 ring-white/10">
+                    <Layers className="h-6 w-6 text-primary-foreground" />
                   </div>
                   <span className="text-xl font-semibold tracking-tight">
                     {t('auth.register.brand')}
@@ -133,15 +136,15 @@ export default function RegisterPage() {
                   {t('auth.register.marketing.description')}
                 </p>
               </div>
-              <p className="text-sm text-white/60">
+              <p className="relative flex items-center gap-2 text-sm text-white/60"><span className="h-px w-8 bg-brand" aria-hidden />
                 {t('auth.register.marketing.footer')}
               </p>
             </div>
 
-            <div className="p-6 sm:p-8 md:p-10">
+            <div className="flex flex-col justify-center px-6 pb-10 pt-20 sm:px-10 md:px-12 md:py-8 lg:px-20 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-md">
               <div className="flex items-center gap-2 mb-6 md:hidden">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-600">
-                  <Layers className="h-5 w-5 text-white" />
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-primary shadow-sm">
+                  <Layers className="h-5 w-5 text-primary-foreground" />
                 </div>
                 <span className="text-lg font-semibold text-foreground">
                   {t('auth.register.brand')}
@@ -165,10 +168,10 @@ export default function RegisterPage() {
                   actions={
                     existingAccount ? (
                       <>
-                        <Link to="/login" state={{ email: email.trim() }} className="font-medium text-teal-600 hover:text-teal-700">
+                        <Link to="/login" state={{ email: email.trim() }} className="font-medium text-primary hover:text-primary-hover">
                           {t('auth.register.signIn')}
                         </Link>
-                        <Link to="/forgot-password" state={{ email: email.trim() }} className="font-medium text-teal-600 hover:text-teal-700">
+                        <Link to="/forgot-password" state={{ email: email.trim() }} className="font-medium text-primary hover:text-primary-hover">
                           {t('auth.login.forgotPassword')}
                         </Link>
                       </>
@@ -328,7 +331,7 @@ export default function RegisterPage() {
                 <CardFooter className="flex flex-col p-0 mt-8 gap-4">
                   <Button
                     type="submit"
-                    className="w-full bg-teal-600 hover:bg-teal-700 text-white h-11 text-base font-medium transition-all"
+                    className="w-full h-11 text-base font-medium transition-all"
                     disabled={loading}
                   >
                     {loading ? (
@@ -347,7 +350,7 @@ export default function RegisterPage() {
                     {t('auth.register.hasAccount')}{" "}
                     <Link
                       to="/login"
-                      className="text-teal-600 hover:text-teal-700 font-medium transition-colors"
+                      className="text-primary hover:text-primary-hover font-medium transition-colors"
                     >
                       {t('auth.register.signIn')}
                     </Link>

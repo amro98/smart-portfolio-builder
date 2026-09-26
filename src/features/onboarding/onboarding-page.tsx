@@ -234,7 +234,7 @@ export default function OnboardingPage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-muted/40">
+    <div className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-4 py-8 sm:py-12">
         <div className="mb-8 text-center">
           <div className="mb-1 flex items-center justify-center gap-2">
@@ -259,8 +259,8 @@ export default function OnboardingPage() {
                       index < currentStep
                         ? 'border-primary bg-primary text-primary-foreground'
                         : index === currentStep
-                          ? 'border-primary bg-background text-primary'
-                          : 'border-muted-foreground/30 bg-background text-muted-foreground/50'
+                          ? 'border-primary bg-card text-primary'
+                          : 'border-input bg-card text-subtle-foreground'
                     )}
                   >
                     {index < currentStep ? (
@@ -274,7 +274,7 @@ export default function OnboardingPage() {
                       'text-xs font-medium',
                       index <= currentStep
                         ? 'text-foreground'
-                        : 'text-muted-foreground/50'
+                        : 'text-muted-foreground'
                     )}
                   >
                     {label}
@@ -284,7 +284,7 @@ export default function OnboardingPage() {
                   <div
                     className={cn(
                       'mx-2 h-0.5 flex-1 rounded-full transition-colors',
-                      index < currentStep ? 'bg-primary' : 'bg-muted-foreground/20'
+                      index < currentStep ? 'bg-primary' : 'bg-border'
                     )}
                   />
                 )}
@@ -354,7 +354,7 @@ export default function OnboardingPage() {
             disabled={currentStep === 0}
             className={cn(currentStep === 0 && 'invisible')}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" />
+            <ArrowLeft className="me-2 h-4 w-4" />
             Back
           </Button>
 
@@ -367,12 +367,12 @@ export default function OnboardingPage() {
             <Button onClick={handleSubmit} disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <Loader2 className="me-2 h-4 w-4 animate-spin" />
                   Creating...
                 </>
               ) : (
                 <>
-                  <Sparkles className="mr-2 h-4 w-4" />
+                  <Sparkles className="me-2 h-4 w-4" />
                   Create Portfolio
                 </>
               )}
@@ -543,7 +543,7 @@ function StepStyle({
             className={cn(
               'flex items-center gap-3 rounded-lg border-2 p-4 text-left transition-colors',
               themeMode === 'light'
-                ? 'border-primary bg-primary/5'
+                ? 'border-primary bg-primary-soft'
                 : 'border-border hover:border-muted-foreground/40'
             )}
           >
@@ -552,7 +552,7 @@ function StepStyle({
                 'flex h-10 w-10 items-center justify-center rounded-full',
                 themeMode === 'light'
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground'
+                  : 'bg-surface-secondary text-muted-foreground'
               )}
             >
               <Sun className="h-5 w-5" />
@@ -569,7 +569,7 @@ function StepStyle({
             className={cn(
               'flex items-center gap-3 rounded-lg border-2 p-4 text-left transition-colors',
               themeMode === 'dark'
-                ? 'border-primary bg-primary/5'
+                ? 'border-primary bg-primary-soft'
                 : 'border-border hover:border-muted-foreground/40'
             )}
           >
@@ -578,7 +578,7 @@ function StepStyle({
                 'flex h-10 w-10 items-center justify-center rounded-full',
                 themeMode === 'dark'
                   ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground'
+                  : 'bg-surface-secondary text-muted-foreground'
               )}
             >
               <Moon className="h-5 w-5" />
@@ -605,7 +605,7 @@ function StepStyle({
                 className={cn(
                   'relative flex flex-col gap-2 rounded-lg border-2 p-3 text-left transition-colors',
                   isSelected
-                    ? 'border-primary bg-primary/5'
+                    ? 'border-primary bg-primary-soft'
                     : 'border-border hover:border-muted-foreground/40'
                 )}
               >
@@ -661,7 +661,7 @@ function StepStyle({
                 className={cn(
                   'relative flex items-center gap-3 rounded-lg border-2 p-3 text-left transition-colors',
                   isSelected
-                    ? 'border-primary bg-primary/5'
+                    ? 'border-primary bg-primary-soft'
                     : 'border-border hover:border-muted-foreground/40'
                 )}
               >
@@ -670,7 +670,7 @@ function StepStyle({
                     'flex h-8 w-8 shrink-0 items-center justify-center rounded-md',
                     isSelected
                       ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
+                      : 'bg-surface-secondary text-muted-foreground'
                   )}
                 >
                   <Zap className="h-4 w-4" />
@@ -730,8 +730,8 @@ function StepSections({
               className={cn(
                 'flex items-center justify-between rounded-lg border p-4 transition-colors',
                 isEnabled
-                  ? 'border-primary/30 bg-primary/5'
-                  : 'border-border bg-background'
+                  ? 'border-primary/30 bg-primary-soft'
+                  : 'border-border bg-card'
               )}
             >
               <div className="flex items-center gap-3">
@@ -739,8 +739,8 @@ function StepSections({
                   className={cn(
                     'flex h-9 w-9 items-center justify-center rounded-md',
                     isEnabled
-                      ? 'bg-primary/10 text-primary'
-                      : 'bg-muted text-muted-foreground'
+                      ? 'bg-primary-soft text-primary-soft-foreground'
+                      : 'bg-surface-secondary text-muted-foreground'
                   )}
                 >
                   {SECTION_ICONS[sectionId]}

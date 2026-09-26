@@ -22,7 +22,7 @@ export function PasswordRequirements({ id, password, showErrors }: { id: string;
               key={rule.id}
               className={cn(
                 'flex items-center gap-1.5 text-xs transition-colors',
-                met ? 'text-teal-600 dark:text-teal-400' : failed ? 'text-destructive' : 'text-muted-foreground'
+                met ? 'text-success-soft-foreground' : failed ? 'text-destructive' : 'text-muted-foreground'
               )}
             >
               <Icon className={cn('h-3.5 w-3.5 shrink-0', !met && !failed && 'h-2.5 w-2.5 mx-0.5')} aria-hidden />

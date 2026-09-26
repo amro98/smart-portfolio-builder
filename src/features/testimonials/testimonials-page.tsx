@@ -64,8 +64,8 @@ function StarRating({
           <Star
             className={`h-5 w-5 transition-colors ${
               star <= (hovered || value)
-                ? 'fill-amber-400 text-amber-400'
-                : 'text-muted-foreground/30'
+                ? 'fill-warning text-warning'
+                : 'text-input'
             }`}
           />
         </button>
@@ -158,7 +158,7 @@ export default function TestimonialsPage() {
       <div className="space-y-6">
         <PageHeader title={t('testimonials.title')}>
           <Button disabled>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             {t('testimonials.addButton')}
           </Button>
         </PageHeader>
@@ -180,7 +180,7 @@ export default function TestimonialsPage() {
     <div className="space-y-6">
       <PageHeader title={t('testimonials.title')} description={t('testimonials.headerDescription')}>
         <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           {t('testimonials.addButton')}
         </Button>
       </PageHeader>
@@ -199,7 +199,7 @@ export default function TestimonialsPage() {
             <Card key={item.id} className="flex flex-col">
               <CardHeader className="pb-3">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-medium">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-semibold text-brand-soft-foreground">
                     {item.avatarUrl ? (
                       <img
                         src={resolveMediaUrl(item.avatarUrl)}
@@ -232,11 +232,11 @@ export default function TestimonialsPage() {
                 <StarRating value={item.rating} readOnly />
                 <div className="flex items-center gap-2 border-t pt-3">
                   <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
-                    <Pencil className="mr-1 h-3.5 w-3.5" />
+                    <Pencil className="me-1 h-3.5 w-3.5" />
                     {t('testimonials.actions.edit')}
                   </Button>
                   <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(item)}>
-                    <Trash2 className="mr-1 h-3.5 w-3.5" />
+                    <Trash2 className="me-1 h-3.5 w-3.5" />
                     {t('testimonials.actions.delete')}
                   </Button>
                 </div>

@@ -22,10 +22,8 @@ import ServicesPage from '@/features/services/services-page';
 import CertificationsPage from '@/features/certifications/certifications-page';
 import TestimonialsPage from '@/features/testimonials/testimonials-page';
 import GalleryPage from '@/features/gallery/gallery-page';
-import AppearancePage from '@/features/appearance/appearance-page';
-import SectionsPage from '@/features/sections/sections-page';
+import DesignPage from '@/features/design/design-page';
 import PublishPage from '@/features/publish/publish-page';
-import PreviewPage from '@/features/preview/preview-page';
 import PreviewFramePage from '@/features/preview/preview-frame-page';
 import PublicPortfolioPage from '@/features/public-portfolio/public-portfolio-page';
 import { AuthAwareRedirect, AuthGuard, GuestGuard } from './protected-route';
@@ -89,9 +87,12 @@ export const router = createBrowserRouter([
           { path: 'certifications', element: <CertificationsPage /> },
           { path: 'testimonials', element: <TestimonialsPage /> },
           { path: 'gallery', element: <GalleryPage /> },
-          { path: 'appearance', element: <AppearancePage /> },
-          { path: 'sections', element: <SectionsPage /> },
-          { path: 'preview', element: <PreviewPage /> },
+          { path: 'design', element: <DesignPage /> },
+          // Appearance, Sections and Preview were merged into Design & Preview; old links
+          // and bookmarks land there.
+          { path: 'appearance', element: <Navigate to="../design" replace /> },
+          { path: 'sections', element: <Navigate to="../design" replace /> },
+          { path: 'preview', element: <Navigate to="../design" replace /> },
           { path: 'publish', element: <PublishPage /> },
         ],
       },
@@ -126,10 +127,10 @@ export const router = createBrowserRouter([
     element: <Navigate to="/portfolios" replace />,
   },
   {
-    // Chrome-less: no AppLayout, no PortfolioEditorLayout. This is exactly what the
-    // Desktop/Mobile toggle on /portfolios/:id/preview embeds via a real <iframe src>, so
-    // the portfolio renders in a genuinely independent document/viewport — still
-    // authenticated + ownership-checked (usePortfolio -> GET /portfolios/:id), never public.
+    // Chrome-less: no AppLayout, no PortfolioEditorLayout. The Design & Preview workspace
+    // embeds this via a real <iframe src> (at desktop/tablet/phone widths), so the portfolio
+    // renders in a genuinely independent document/viewport — still authenticated +
+    // ownership-checked (usePortfolio -> GET /portfolios/:id), never public.
     path: '/portfolios/:portfolioId/preview-frame',
     element: (
       <AuthGuard>

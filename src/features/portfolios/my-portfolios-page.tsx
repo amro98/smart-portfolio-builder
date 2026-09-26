@@ -1,9 +1,17 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Copy, ExternalLink, Globe, Pencil, Plus, Trash2, X } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Clock, Copy, Eye, FolderPlus, Globe, MoreHorizontal, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { EmptyState } from '@/components/shared/empty-state';
+import { StatusBadge } from '@/components/shared/status-badge';
 import { PageHeader } from '@/components/shared/page-header';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { ErrorState } from '@/components/shared/error-state';
@@ -48,13 +56,17 @@ function toPortfolioCard(portfolio: BackendPortfolio): PortfolioCard {
   };
 }
 
-function formatDate(iso: string) {
-  return new Intl.DateTimeFormat('en-US', { dateStyle: 'medium' }).format(new Date(iso));
+function formatDate(iso: string, lang: string) {
+  return new Intl.DateTimeFormat(lang === 'ar' ? 'ar' : 'en-US', { dateStyle: 'medium' }).format(new Date(iso));
+}
+
+function initialsOf(name: string) {
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]?.toUpperCase()).join('') || '·';
 }
 
 export default function MyPortfoliosPage() {
   const navigate = useNavigate();
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const {
     data: backendPortfolios = [],
@@ -107,19 +119,20 @@ export default function MyPortfoliosPage() {
       <PageHeader title={t('myPortfolios.title')} description={t('myPortfolios.description')}>
         <Button asChild>
           <Link to="/portfolios/new">
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             {t('myPortfolios.createButton')}
           </Link>
         </Button>
       </PageHeader>
 
       {query && (
-        <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
-          <span className="text-muted-foreground">
+        <div className="flex items-center gap-2 rounded-lg border border-primary/25 bg-primary-soft px-3 py-2 text-sm">
+          <Search className="h-4 w-4 shrink-0 text-primary" />
+          <span className="min-w-0 truncate text-foreground-secondary">
             {t('myPortfolios.searchResults', { query })}
           </span>
-          <Button variant="ghost" size="sm" className="ml-auto h-7 px-2" onClick={clearSearch}>
-            <X className="mr-1 h-3.5 w-3.5" />
+          <Button variant="ghost" size="sm" className="ms-auto h-7 px-2" onClick={clearSearch}>
+            <X className="me-1 h-3.5 w-3.5" />
             {t('myPortfolios.clearSearch')}
           </Button>
         </div>
@@ -133,90 +146,94 @@ export default function MyPortfoliosPage() {
           onRetry={() => void refetch()}
         />
       ) : portfolios.length === 0 && query ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
-          <p className="text-lg font-medium">{t('myPortfolios.noSearchResults', { query })}</p>
-          <Button variant="outline" size="sm" className="mt-3" onClick={clearSearch}>
-            {t('myPortfolios.clearSearch')}
-          </Button>
-        </div>
+        <EmptyState
+          icon={Search}
+          title={t('myPortfolios.noSearchResults', { query })}
+          description={t('myPortfolios.empty.description')}
+          actionLabel={t('myPortfolios.clearSearch')}
+          onAction={clearSearch}
+        />
       ) : portfolios.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
-          <p className="text-lg font-medium">{t('myPortfolios.empty.title')}</p>
-          <p className="mt-1 text-sm">{t('myPortfolios.empty.description')}</p>
-        </div>
+        <EmptyState
+          icon={FolderPlus}
+          title={t('myPortfolios.empty.title')}
+          description={t('myPortfolios.empty.description')}
+          actionLabel={t('myPortfolios.createButton')}
+          onAction={() => navigate('/portfolios/new')}
+          decorated
+        />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {portfolios.map((portfolio) => (
-            <Card key={portfolio.id} className="flex flex-col">
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between gap-2">
-                  <CardTitle className="text-base leading-snug">{portfolio.name}</CardTitle>
-                  <Badge
-                    variant={portfolio.status === 'published' ? 'success' : 'secondary'}
-                    className="shrink-0 capitalize"
-                  >
-                    {portfolio.status}
-                  </Badge>
+            <Card
+              key={portfolio.id}
+              className="group flex flex-col overflow-hidden transition-[box-shadow,border-color,transform] duration-200 hover:-translate-y-0.5 hover:border-input hover:shadow-card-hover"
+            >
+              <div className="flex items-start gap-3 p-5 pb-4">
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-sm font-bold text-brand-soft-foreground">
+                  {initialsOf(portfolio.name)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="truncate text-base font-semibold leading-snug text-foreground">{portfolio.name}</h3>
+                    <StatusBadge published={portfolio.status === 'published'} />
+                  </div>
+                  <p className="mt-0.5 truncate text-sm text-foreground-secondary">{portfolio.profession}</p>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    <span dir="ltr">/u/{portfolio.slug}</span>
+                  </p>
                 </div>
-                <CardDescription className="mt-1">
-                  {portfolio.profession} · /u/{portfolio.slug}
-                </CardDescription>
-              </CardHeader>
+              </div>
 
-              <CardContent className="flex-1 pb-2">
-                <p className="text-xs text-muted-foreground">
-                  {t('myPortfolios.updated', { date: formatDate(portfolio.updatedAt) })}
-                </p>
-              </CardContent>
+              <p className="mx-5 flex items-center gap-1.5 border-t border-divider py-3 text-xs text-muted-foreground">
+                <Clock className="h-3.5 w-3.5 shrink-0" />
+                {t('myPortfolios.updated', { date: formatDate(portfolio.updatedAt, lang) })}
+              </p>
 
-              <CardFooter className="flex flex-wrap gap-2 pt-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => navigate(`/portfolios/${portfolio.id}/overview`)}
-                >
-                  <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                  {t('myPortfolios.card.edit')}
-                </Button>
+              <div className="mt-auto flex items-start gap-2 border-t border-border bg-surface-secondary px-5 py-3">
+                <div className="flex min-w-0 flex-1 flex-wrap gap-2">
+                  <Button size="sm" variant="outline" className="h-8 px-3" onClick={() => navigate(`/portfolios/${portfolio.id}/overview`)}>
+                    <Pencil className="me-1.5 h-3.5 w-3.5" />
+                    {t('myPortfolios.card.edit')}
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-8 px-3" onClick={() => navigate(`/portfolios/${portfolio.id}/design`)}>
+                    <Eye className="me-1.5 h-3.5 w-3.5" />
+                    {t('myPortfolios.card.preview')}
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-8 px-3" onClick={() => navigate(`/portfolios/${portfolio.id}/publish`)}>
+                    <Globe className="me-1.5 h-3.5 w-3.5" />
+                    {t('myPortfolios.card.publish')}
+                  </Button>
+                </div>
 
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => window.open(`/u/${portfolio.slug}`, '_blank')}
-                >
-                  <ExternalLink className="mr-1.5 h-3.5 w-3.5" />
-                  {t('myPortfolios.card.preview')}
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => navigate(`/portfolios/${portfolio.id}/publish`)}
-                >
-                  <Globe className="mr-1.5 h-3.5 w-3.5" />
-                  {t('myPortfolios.card.publish')}
-                </Button>
-
-                <Button size="sm" variant="ghost" disabled title={t('myPortfolios.card.duplicateTooltip')}>
-                  <Copy className="mr-1.5 h-3.5 w-3.5" />
-                  {t('myPortfolios.card.duplicate')}
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="text-destructive hover:text-destructive"
-                  onClick={() => setDeleteTargetId(portfolio.id)}
-                >
-                  <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                  {t('myPortfolios.card.delete')}
-                </Button>
-              </CardFooter>
+                {/* Secondary and destructive actions live in the overflow menu, away from the
+                    everyday actions. */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="icon" variant="ghost" className="h-8 w-8 shrink-0 text-muted-foreground" aria-label={t('myPortfolios.card.more')}>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuItem disabled className="gap-2" title={t('myPortfolios.card.duplicateTooltip')}>
+                      <Copy className="h-4 w-4" />
+                      {t('myPortfolios.card.duplicate')}
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="cursor-pointer gap-2 text-destructive focus:bg-destructive-soft focus:text-destructive-soft-foreground"
+                      onClick={() => setDeleteTargetId(portfolio.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {t('myPortfolios.card.delete')}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </Card>
           ))}
         </div>
       )}
-
       <ConfirmDialog
         open={deleteTargetId !== null}
         onOpenChange={(open) => { if (!open) setDeleteTargetId(null); }}

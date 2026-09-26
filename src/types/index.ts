@@ -8,12 +8,31 @@ export type ProfessionCategory =
   | 'freelancer'
   | 'student'
   | 'business-owner'
+  | 'consultant'
+  | 'researcher'
+  | 'writer'
+  | 'architect'
   | 'other';
 
-export type TemplateId = 'modern' | 'minimal' | 'corporate' | 'creative';
+// Ids are stable storage keys; product names live in the template registry. The four
+// original ids keep their historic names ("modern" is the Network template, etc.).
+export type TemplateId =
+  | 'modern'
+  | 'minimal'
+  | 'corporate'
+  | 'creative'
+  | 'editorial'
+  | 'executive'
+  | 'clinical'
+  | 'lens'
+  | 'bento'
+  | 'terminal'
+  | 'coach'
+  | 'academic';
 export type ColorPaletteId = 'monochrome' | 'corporate-blue' | 'medical-calm' | 'creative-gradient' | 'warm-coach' | 'elegant-neutral';
 export type AnimationPresetId = 'none' | 'subtle' | 'soft' | 'modern' | 'dynamic';
-export type FontPresetId = 'professional' | 'modern' | 'creative';
+/** "signature" = each template's own designed typography; the others override it. */
+export type FontPresetId = 'signature' | 'professional' | 'modern' | 'creative' | 'editorial' | 'mono';
 export type ThemeMode = 'light' | 'dark' | 'auto';
 
 export type SectionId =
@@ -94,6 +113,11 @@ export interface Portfolio {
   customAccentColor: string;
   sectionOrder: SectionId[];
   sectionVisibility: Record<SectionId, boolean>;
+  /**
+   * Version of the design settings schema. v2 made font presets real overrides; older data
+   * (where the font setting had no visible effect) is read as the template's signature fonts.
+   */
+  designVersion?: number;
   isPublished: boolean;
   publishedAt: string | null;
   updatedAt: string;

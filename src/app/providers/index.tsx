@@ -4,7 +4,7 @@ import { Toaster } from 'sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { authApi } from '@/lib/api/client';
 import { queryClient } from '@/lib/query/client';
-import { useAuthStore } from '@/store';
+import { useAuthStore, useUIStore } from '@/store';
 import { ThemeProvider } from './theme-provider';
 import { LocaleProvider } from './locale-provider';
 
@@ -36,6 +36,12 @@ function AuthBootstrap() {
   return null;
 }
 
+// Toasts follow the app's light/dark setting instead of always rendering light.
+function ThemedToaster() {
+  const themeMode = useUIStore((s) => s.themeMode);
+  return <Toaster position="bottom-right" richColors closeButton theme={themeMode === 'auto' ? 'system' : themeMode} />;
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
@@ -44,7 +50,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <ThemeProvider>
           <TooltipProvider>
             {children}
-            <Toaster position="bottom-right" richColors closeButton />
+            <ThemedToaster />
           </TooltipProvider>
         </ThemeProvider>
       </LocaleProvider>

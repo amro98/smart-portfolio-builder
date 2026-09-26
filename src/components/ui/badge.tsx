@@ -7,11 +7,18 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: 'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
-        secondary: 'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
-        destructive: 'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-        outline: 'text-foreground',
-        success: 'border-transparent bg-success text-success-foreground',
+        default: 'border-transparent bg-primary text-primary-foreground',
+        // Neutral chip (tags, categories).
+        secondary: 'border-border bg-secondary text-foreground-secondary',
+        destructive: 'border-transparent bg-destructive-soft text-destructive-soft-foreground',
+        outline: 'border-input text-foreground',
+        // Semantic statuses use soft fills so the text keeps ≥4.5:1 contrast.
+        success: 'border-transparent bg-success-soft text-success-soft-foreground',
+        warning: 'border-transparent bg-warning-soft text-warning-soft-foreground',
+        // Unpublished / inactive status.
+        draft: 'border-transparent bg-draft-soft text-draft-soft-foreground',
+        // Accent highlight (Recommended, Suggested).
+        soft: 'border-transparent bg-brand-soft text-brand-soft-foreground',
       },
     },
     defaultVariants: {

@@ -9,7 +9,7 @@ import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import { usePortfolioLocale } from '../../portfolio-locale';
 import { getAmbientIntensity, type AmbientIntensity } from '../scene-config';
 import { getSocialIcon, socialEntries, sortByOrder, useContactForm, type TemplateContentProps } from '../shared';
-import { resolveAccent, skinStyle, firstName, yearOf, type TemplateSkin } from '../theme';
+import { fontVars, resolveAccent, skinStyle, firstName, yearOf, type TemplateSkin } from '../theme';
 import { scrollToSection, splitNav, useActiveSection, useNavSections, useScrollY } from '../nav-utils';
 import { useAmbientMotion, useReveal } from '../motion-utils';
 import { getTechIcon, readableBrandColor } from '../tech-icons';
@@ -676,7 +676,7 @@ export default function NetworkTemplate({
     ...skinStyle(SKIN, accent),
     '--net': net,
     '--slab': slab,
-    fontFamily: "'Montserrat', system-ui, sans-serif",
+    ...fontVars({ display: "'Montserrat', system-ui, sans-serif", body: "'Montserrat', system-ui, sans-serif" }),
   } as React.CSSProperties;
 
   const sections: Record<SectionId, React.ReactNode> = {

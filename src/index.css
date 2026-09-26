@@ -2,58 +2,151 @@
 @tailwind components;
 @tailwind utilities;
 
+/* SPB builder design system — "slate shell · teal identity · warm workspace".
+   HSL triplets, consumed through Tailwind as hsl(var(--x)) (see tailwind.config.js).
+   Layers, back to front: sidebar (dark slate) → topbar → app background → workspace
+   (warm panels: editor nav, design controls) → cards → controls/inputs. The preview stage
+   has its own neutral canvas.
+   Portfolio templates re-declare the tokens they use on their own root (templates/theme.ts
+   skinStyle), so nothing here recolors or reshapes a published portfolio. */
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --success: 142 71% 45%;
+    /* Surfaces */
+    --background: 40 37.5% 96.9%;             /* #FAF8F4 warm ivory workspace */
+    --workspace: 42.9 33.3% 95.9%;            /* #F8F6F1 warm canvas: editor nav, design controls, auth */
+    --surface: 20 100% 99.4%;                 /* #FFFDFC cards, topbar */
+    --surface-secondary: 160 23.1% 97.5%;     /* #F7FAF9 wells, card footers, tracks */
+    --canvas: 165 13.3% 94.1%;                /* #EEF2F1 preview stage around the iframe */
+    --input-background: 0 0% 100%;            /* #FFFFFF */
+    --popover: 20 100% 99.4%;
+
+    /* Text */
+    --foreground: 222.2 47.4% 11.2%;          /* #0F172A text primary */
+    --foreground-secondary: 215.3 19.3% 34.5%; /* #475569 descriptions */
+    --muted-foreground: 215.4 16.3% 46.9%;    /* #64748B metadata */
+    --subtle-foreground: 215 20.2% 65.1%;     /* #94A3B8 placeholders, disabled */
+
+    /* Teal identity */
+    --primary: 175.3 77.4% 26.1%;             /* #0F766E */
+    --primary-foreground: 0 0% 100%;          /* 5.5:1 on --primary */
+    --primary-hover: 174.7 83.9% 31.6%;       /* #0D9488 */
+    --primary-soft: 168 100% 95.1%;           /* #E6FFFA selected surfaces */
+    --primary-soft-foreground: 175.3 77.4% 26.1%; /* #0F766E — 5.2:1 on --primary-soft */
+    --brand: 173.4 80.4% 40%;                 /* #14B8A6 indicators, highlights */
+    --brand-soft: 167.2 85.5% 89.2%;          /* #CCFBF1 recommendation badges, icon tiles */
+    --brand-soft-foreground: 176.1 69.4% 21.8%; /* #115E59 — 6.7:1 on --brand-soft */
+
+    /* Lines */
+    --border: 160 11.5% 89.8%;                /* #E2E8E6 */
+    --input: 156 10.6% 81.6%;                 /* #CBD5D1 border strong: fields, secondary buttons */
+    --divider: 144 11.6% 91.6%;               /* #E7ECE9 */
+
+    /* Interaction */
+    --accent: 165 16.7% 95.3%;                /* #F1F5F4 neutral hover surface */
+
+    /* Semantic */
+    --destructive: 0 72.2% 50.6%;             /* #DC2626 */
+    --destructive-foreground: 0 0% 100%;
+    --destructive-soft: 0 93.3% 94.1%;        /* #FEE2E2 */
+    --destructive-soft-foreground: 0 73.7% 41.8%; /* #B91C1C */
+    --success: 142.1 76.2% 36.3%;             /* #16A34A */
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --success-soft: 140.6 84.2% 92.5%;        /* #DCFCE7 */
+    --success-soft-foreground: 142.4 71.8% 29.2%; /* #15803D */
+    --warning: 32.1 94.6% 43.7%;              /* #D97706 */
     --warning-foreground: 0 0% 100%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 9%;
-    --radius: 0.5rem;
+    --warning-soft: 48 96.5% 88.8%;           /* #FEF3C7 */
+    --warning-soft-foreground: 26 90.5% 37.1%; /* #B45309 */
+    --draft: 215.4 16.3% 46.9%;               /* #64748B */
+    --draft-soft: 214.3 31.8% 91.4%;          /* #E2E8F0 */
+    --draft-soft-foreground: 215.3 25% 26.7%; /* #334155 */
+
+    /* Dark slate shell (same in both modes) */
+    --sidebar: 222.2 47.4% 11.2%;             /* #0F172A */
+    --sidebar-elevated: 212 46.9% 12.5%;      /* #111F2F logo band, footer */
+    --sidebar-hover: 202 52.7% 18.2%;         /* #163547 */
+    --sidebar-active: 192.5 72% 21%;          /* #0F4C5C */
+    --sidebar-active-strong: 175.3 77.4% 26.1%; /* #0F766E */
+    --sidebar-foreground: 212.7 26.8% 83.9%;  /* #CBD5E1 */
+    --sidebar-muted: 215 20.2% 65.1%;         /* #94A3B8 */
+    --sidebar-foreground-strong: 0 0% 100%;   /* #FFFFFF */
+    --sidebar-indicator: 173.4 80.4% 40%;     /* #14B8A6 */
+    --sidebar-border: 213 40% 17%;
+    --sidebar-deep: 175.8 60.7% 19%;          /* #134E4A decorative glow */
+
+    /* Atmosphere (decorative background layers only) */
+    --haze-warm: 27.7 26.8% 78%;              /* #D6C6B8 sand haze */
+    --border-warm: 38 24% 86%;                /* #E3DDD2 warm card edge on auth */
+
+    --overlay: 222.2 47.4% 8%;                /* modal scrim */
+    --shadow-color: 200 30% 15%;
+    --radius: 0.75rem;                        /* cards 12px, controls 10px */
   }
 
   .dark {
-    --background: 0 0% 4%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 7%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 7%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 64%;
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62% 50%;
-    --destructive-foreground: 0 0% 98%;
-    --success: 142 71% 45%;
-    --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 0 0% 83%;
+    --background: 210 37.5% 6.3%;            /* #0A1016 */
+    --workspace: 210 38% 8.6%;                /* between page and cards */
+    --surface: 211.6 35.8% 10.4%;             /* #111A24 */
+    --surface-secondary: 211.1 39.1% 13.5%;   /* #152230 */
+    --canvas: 210 41.7% 4.7%;                 /* #070C11 */
+    --input-background: 210 40% 7.8%;         /* #0C141C — inset below cards */
+    --popover: 211.1 39.1% 13.5%;
+
+    --foreground: 210 40% 98%;                /* #F8FAFC */
+    --foreground-secondary: 212.7 26.8% 83.9%; /* #CBD5E1 */
+    --muted-foreground: 215 20.2% 65.1%;      /* #94A3B8 — 6.8:1 on cards */
+    --subtle-foreground: 215.4 16.3% 46.9%;   /* #64748B */
+
+    --primary: 173.4 80.4% 40%;               /* #14B8A6 */
+    --primary-foreground: 178.6 84.3% 10%;    /* #042F2E — 5.8:1 (white would be 2.5:1) */
+    --primary-hover: 172.5 66% 50.4%;         /* #2DD4BF */
+    --primary-soft: 192 50.7% 13.5%;          /* teal tint on cards */
+    --primary-soft-foreground: 170.6 76.9% 64.3%; /* #5EEAD4 */
+    --brand-soft: 185.5 55% 15.7%;
+    --brand-soft-foreground: 170.6 76.9% 64.3%;
+
+    --border: 208.9 28.4% 18.6%;              /* #22303D */
+    --input: 209.1 26% 24.9%;                 /* #2F4050 */
+    --divider: 208.9 30% 16%;
+    --accent: 208.9 34.2% 15.5%;              /* #1A2835 */
+
+    --destructive: 0 84.2% 60.2%;             /* #EF4444 */
+    --destructive-soft: 350.8 39.4% 12.9%;
+    --destructive-soft-foreground: 0 90.6% 70.8%; /* #F87171 */
+    --success: 142.1 70.6% 45.3%;             /* #22C55E */
+    --success-foreground: 222.2 47.4% 11.2%;
+    --success-soft: 150 50% 11%;
+    --success-soft-foreground: 141.9 69.2% 58%; /* #4ADE80 */
+    --warning: 37.7 92.1% 50.2%;              /* #F59E0B */
+    --warning-foreground: 222.2 47.4% 11.2%;
+    --warning-soft: 38.6 46.7% 11.8%;
+    --warning-soft-foreground: 43.3 96.4% 56.3%; /* #FBBF24 */
+    --draft: 215 20.2% 65.1%;
+    --draft-soft: 217.2 32.6% 17.5%;          /* #1E293B */
+    --draft-soft-foreground: 212.7 26.8% 83.9%;
+
+    --sidebar: 217.1 48.8% 8.4%;              /* #0B1320 — keeps the shell a step off the page */
+    --sidebar-elevated: 212 46.9% 11%;
+    --sidebar-border: 210 35% 14%;
+
+    --haze-warm: 196 26% 24%;                 /* cool slate haze — sand turns muddy on dark */
+    --border-warm: 208.9 28.4% 18.6%;
+
+    --shadow-color: 0 0% 0%;
+  }
+
+  /* Aliases. Declared for both selectors so they re-resolve wherever .dark is applied
+     (a var() inside a custom property is resolved on the element that declares it). */
+  :root,
+  .dark {
+    --card: var(--surface);
+    --card-foreground: var(--foreground);
+    --popover-foreground: var(--foreground);
+    --secondary: var(--surface-secondary);
+    --secondary-foreground: var(--foreground);
+    --muted: var(--surface-secondary);
+    --accent-foreground: var(--foreground);
+    --ring: var(--primary);
   }
 }
 
@@ -68,12 +161,74 @@
 }
 
 @layer utilities {
+  /* Faint dot texture for decorative background layers, faded out towards the edges. */
+  .decor-dots {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(ellipse 70% 60% at 70% 20%, #000 20%, transparent 75%);
+    mask-image: radial-gradient(ellipse 70% 60% at 70% 20%, #000 20%, transparent 75%);
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+}
+
+/* Ambient decoration motion (background layers only). Transform-only keyframes keep it on
+   the compositor; each layer sets its own --decor-* timing/offsets so nothing moves in
+   sync. Blur, where used, is static. */
+@keyframes decor-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(var(--decor-x, 8px), var(--decor-y, -12px), 0) scale(var(--decor-scale, 1.03));
+  }
+}
+
+@keyframes decor-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.decor-float {
+  animation: decor-float var(--decor-duration, 18s) ease-in-out var(--decor-delay, 0s) infinite;
+  will-change: transform;
+}
+
+/* Continuous wave flow: the SVG is two identical wave periods wide, so sliding it by half
+   its width loops seamlessly. */
+@keyframes decor-wave-flow {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.decor-wave {
+  animation: decor-wave-flow var(--decor-duration, 10s) linear var(--decor-delay, 0s) infinite;
+  will-change: transform;
+}
+
+.decor-spin {
+  animation: decor-spin var(--decor-duration, 120s) linear infinite;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Shapes stay visible, they just stop moving. */
+  .decor-float,
+  .decor-spin,
+  .decor-wave {
+    animation: none !important;
   }
 }
 
@@ -89,4 +244,11 @@ html.motion-cursor *:not(input):not(textarea):not(select) {
    as ".Developer" on an Arabic page). */
 .portfolio-bidi :is(p, h1, h2, h3, h4, li, dt, dd, blockquote, figcaption, span) {
   unicode-bidi: plaintext;
+}
+
+/* Typography preset override (Design & Preview → Typography): headings take the chosen
+   display family. With the default "signature" preset this rule doesn't apply and every
+   template keeps its own art-directed fonts exactly. */
+[data-font-override] :is(h1, h2, h3, h4) {
+  font-family: var(--tpl-display) !important;
 }

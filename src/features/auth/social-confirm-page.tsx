@@ -81,16 +81,16 @@ export default function SocialConfirmPage() {
     pending?.provider === "github" ? <Github className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden /> : <GoogleMark />;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }} className="w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-600">
-            <Layers className="h-5 w-5 text-white" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-primary shadow-sm">
+            <Layers className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="text-lg font-semibold text-foreground">{t("auth.forgotPassword.brand")}</span>
         </div>
 
-        <Card className="border shadow-lg">
+        <Card className="border-border-warm shadow-elevated">
           {state.status === "loading" && (
             <CardContent className="flex items-center justify-center py-16">
               <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" aria-label={t("common.loading")} />
@@ -110,7 +110,7 @@ export default function SocialConfirmPage() {
                   title={isExistingAccountCode(state.code) ? t("auth.errors.accountExistsTitle") : undefined}
                   actions={
                     isExistingAccountCode(state.code) ? (
-                      <Link to="/forgot-password" className="font-medium text-teal-600 hover:text-teal-700">
+                      <Link to="/forgot-password" className="font-medium text-primary hover:text-primary-hover">
                         {t("auth.login.forgotPassword")}
                       </Link>
                     ) : undefined
@@ -120,7 +120,7 @@ export default function SocialConfirmPage() {
                 </AuthNotice>
               </CardContent>
               <CardFooter>
-                <Button asChild className="w-full h-11 bg-teal-600 hover:bg-teal-700 text-white">
+                <Button asChild className="w-full h-11">
                   <Link to="/login" replace>
                     <ArrowLeft className="me-2 h-4 w-4 rtl:rotate-180" />
                     {t("auth.forgotPassword.backToSignIn")}
@@ -134,8 +134,8 @@ export default function SocialConfirmPage() {
             <>
               <CardHeader>
                 {isLink && (
-                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-teal-600/10">
-                    <Link2 className="h-5 w-5 text-teal-600" aria-hidden />
+                  <div className="mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-primary-soft">
+                    <Link2 className="h-5 w-5 text-primary" aria-hidden />
                   </div>
                 )}
                 <CardTitle className="text-2xl font-bold">
@@ -173,7 +173,7 @@ export default function SocialConfirmPage() {
                 </p>
               </CardContent>
               <CardFooter className="flex flex-col gap-3">
-                <Button className="w-full h-11 bg-teal-600 hover:bg-teal-700 text-white" onClick={() => void confirm(pending)} disabled={action !== null}>
+                <Button className="w-full h-11" onClick={() => void confirm(pending)} disabled={action !== null}>
                   {action === "confirm" ? (
                     <>
                       <Loader2 className="me-2 h-4 w-4 animate-spin" />

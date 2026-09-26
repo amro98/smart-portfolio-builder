@@ -296,9 +296,9 @@ export default function ProfilePage() {
           disabled={!hasUnsavedChanges || isSaving}
         >
           {isSaving ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            <Loader2 className="me-2 h-4 w-4 animate-spin" />
           ) : (
-            <Save className="mr-2 h-4 w-4" />
+            <Save className="me-2 h-4 w-4" />
           )}
           {t('profile.saveChanges')}
         </Button>
@@ -412,10 +412,10 @@ export default function ProfilePage() {
                   <div key={field.key} className="space-y-2">
                     <Label htmlFor={`social-${field.key}`}>{t(field.label)}</Label>
                     <div className="relative">
-                      <field.icon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <field.icon className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                       <Input
                         id={`social-${field.key}`}
-                        className="pl-10"
+                        className="ps-10"
                         placeholder={field.placeholder}
                         {...register(`socialLinks.${field.key}`)}
                       />
@@ -434,9 +434,9 @@ export default function ProfilePage() {
               <CardDescription>{t('profile.avatar.description')}</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center gap-4">
-              <div className="relative h-28 w-28 overflow-hidden rounded-full border-2 border-muted bg-muted">
+              <div className="relative h-28 w-28 overflow-hidden rounded-full border-4 border-card bg-surface-secondary shadow-card ring-1 ring-border">
                 {isSaving ? (
-                  <div className="flex h-full w-full items-center justify-center bg-muted">
+                  <div className="flex h-full w-full items-center justify-center bg-surface-secondary">
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                   </div>
                 ) : displayAvatar ? (
@@ -446,7 +446,7 @@ export default function ProfilePage() {
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <div className="flex h-full w-full items-center justify-center bg-primary/10 text-2xl font-bold text-primary">
+                  <div className="flex h-full w-full items-center justify-center bg-brand-soft text-2xl font-bold text-brand-soft-foreground">
                     {fullNameValue ? getInitials(fullNameValue) : <User className="h-10 w-10 text-muted-foreground" />}
                   </div>
                 )}
@@ -472,7 +472,7 @@ export default function ProfilePage() {
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isSaving}
                 >
-                  <Camera className="mr-2 h-4 w-4" />
+                  <Camera className="me-2 h-4 w-4" />
                   {t('profile.avatar.uploadButton')}
                 </Button>
                 {displayAvatar && (
@@ -483,7 +483,7 @@ export default function ProfilePage() {
                     onClick={handleRemoveAvatar}
                     disabled={isSaving}
                   >
-                    <Trash2 className="mr-2 h-4 w-4" />
+                    <Trash2 className="me-2 h-4 w-4" />
                     {t('profile.avatar.removeButton')}
                   </Button>
                 )}
@@ -498,8 +498,8 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-                  <Mail className="h-4 w-4 text-muted-foreground" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand-soft-foreground">
+                  <Mail className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">{t('profile.info.email')}</p>
@@ -510,8 +510,8 @@ export default function ProfilePage() {
               <Separator />
 
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-                  <Briefcase className="h-4 w-4 text-muted-foreground" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand-soft-foreground">
+                  <Briefcase className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">{t('profile.info.Profession')}</p>
@@ -522,8 +522,8 @@ export default function ProfilePage() {
               <Separator />
 
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-muted">
-                  <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-soft text-brand-soft-foreground">
+                  <CalendarDays className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">{t('profile.info.memberSince')}</p>

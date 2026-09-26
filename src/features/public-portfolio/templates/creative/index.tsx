@@ -7,7 +7,7 @@ import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import { usePortfolioLocale } from '../../portfolio-locale';
 import { getAmbientIntensity, type AmbientIntensity } from '../scene-config';
 import { getSocialIcon, socialEntries, sortByOrder, useContactForm, type TemplateContentProps } from '../shared';
-import { resolveAccent, skinStyle, splitLastWord, yearOf, yearsOfExperience, type TemplateSkin } from '../theme';
+import { fontVars, resolveAccent, skinStyle, splitLastWord, yearOf, yearsOfExperience, type TemplateSkin } from '../theme';
 import { scrollToSection, useActiveSection, useLockScroll, useNavSections } from '../nav-utils';
 import { useAmbientMotion, useReveal } from '../motion-utils';
 import { getTechIcon } from '../tech-icons';
@@ -597,7 +597,7 @@ export default function ArtDirectorTemplate({
     ...skinStyle(SKIN, accent),
     '--art-ink': '219 27% 18%',
     '--art-blob': `${(parseFloat(h) + 28) % 360} ${s} 50%`,
-    fontFamily: "'Poppins', system-ui, sans-serif",
+    ...fontVars({ display: "'Poppins', system-ui, sans-serif", body: "'Poppins', system-ui, sans-serif" }),
   } as React.CSSProperties;
   const published = projects.filter((p) => p.status === 'published');
 

@@ -1,5 +1,11 @@
 import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { extendTailwindMerge } from 'tailwind-merge';
+
+// Registers the custom elevation tokens (tailwind.config boxShadow) so `shadow-card` and
+// `shadow-lg` are recognised as the same utility group and a className override wins.
+const twMerge = extendTailwindMerge({
+  extend: { classGroups: { shadow: [{ shadow: ['card', 'card-hover', 'elevated'] }] } },
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

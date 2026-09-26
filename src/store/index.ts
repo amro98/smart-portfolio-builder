@@ -19,12 +19,10 @@ function clearPrivateQueryCache() {
 interface UIStore {
   themeMode: ThemeMode;
   sidebarOpen: boolean;
-  previewDevice: 'desktop' | 'mobile';
   onboardingStep: number;
   setThemeMode: (mode: ThemeMode) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
-  setPreviewDevice: (device: 'desktop' | 'mobile') => void;
   setOnboardingStep: (step: number) => void;
 }
 
@@ -33,12 +31,10 @@ export const useUIStore = create<UIStore>()(
     (set) => ({
       themeMode: 'light',
       sidebarOpen: true,
-      previewDevice: 'desktop',
       onboardingStep: 0,
       setThemeMode: (mode) => set({ themeMode: mode }),
       toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
-      setPreviewDevice: (device) => set({ previewDevice: device }),
       setOnboardingStep: (step) => set({ onboardingStep: step }),
     }),
     {

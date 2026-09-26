@@ -1,3 +1,5 @@
+import { designMessages } from './design-messages';
+
 export type AppLocale = 'en' | 'ar';
 
 export const messages: Record<AppLocale, Record<string, string>> = {
@@ -23,6 +25,12 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     'nav.myPortfolios': 'My Portfolios',
     'nav.templates': 'Templates',
     'nav.settings': 'Settings',
+    'shell.workspace': 'Workspace',
+    'shell.menu': 'Open navigation',
+    'shell.toggleTheme': 'Toggle light/dark theme',
+    'shell.account': 'Account menu',
+    'shell.searchNoResults': 'No portfolios match "{query}".',
+    'myPortfolios.card.more': 'More actions',
 
     'editor.editing': 'Editing: {name}',
     'editor.portfolioEditor': 'Portfolio Editor',
@@ -51,13 +59,7 @@ export const messages: Record<AppLocale, Record<string, string>> = {
 
     'templates.title': 'Templates',
     'templates.description': 'Pick a starting look for a new portfolio, or apply one to a portfolio you already have.',
-    'templates.comingSoon': 'Coming soon',
-    'templates.available': 'Available',
     'templates.startNew': 'Start New Portfolio',
-    'templates.desc.modern': 'A dark developer portfolio on a living, interactive network canvas — calm typography, tech-icon skills and large alternating project showcases.',
-    'templates.desc.minimal': 'A portrait-led personal portfolio with a two-tone headline, tilted photo cards, a rotating scroll badge and soft rounded project cards.',
-    'templates.desc.corporate': 'A kinetic dark portfolio with a haloed three-column hero, custom cursor, sliding project cards with detail drawers and tabbed experience.',
-    'templates.desc.creative': 'A poster-like studio portfolio with oversized type, a profession-aware illustration, liquid blobs and full-width case-study projects.',
     'templates.applyPlaceholder': 'Apply to portfolio...',
     'templates.applyButton': 'Apply',
     'templates.applySuccess': 'Template applied.',
@@ -95,19 +97,12 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     'wizard.fontLabel': 'Font preset',
     'wizard.animationLabel': 'Animation style',
     'wizard.suggested': 'Suggested',
-    'wizard.selected': 'Selected',
     'wizard.back': 'Back',
     'wizard.next': 'Next',
     'wizard.create': 'Create Portfolio',
     'wizard.createSuccess': 'Portfolio created successfully.',
     'wizard.createError': 'Unable to create the portfolio. Please try again.',
 
-    'preview.title': 'Preview',
-    'preview.description': 'See how your portfolio looks to visitors.',
-    'preview.loading': 'Loading your portfolio preview...',
-    'preview.noData': 'No portfolio data found.',
-    'preview.desktop': 'Desktop',
-    'preview.mobile': 'Mobile',
 
     'toast.signedOut': 'Signed out',
     'toast.messageSent': 'Message sent successfully!',
@@ -122,9 +117,6 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     'dashboard.nav.certifications': 'Certifications',
     'dashboard.nav.testimonials': 'Testimonials',
     'dashboard.nav.gallery': 'Gallery',
-    'dashboard.nav.appearance': 'Appearance',
-    'dashboard.nav.sections': 'Sections',
-    'dashboard.nav.preview': 'Preview',
     'dashboard.nav.publish': 'Publish',
 
     // authentication / login page
@@ -656,53 +648,8 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     'gallery.form.createDescription': 'Add a new image to your gallery.',
 
     // Appearance page
-    'appearance.title': 'Appearance',
-    'appearance.description': 'Customize the look and feel of your portfolio',
-    'appearance.language.title': 'Language & Direction',
-    'appearance.language.description': 'Switch between English and Arabic for the dashboard and public portfolio preview.',
-    'appearance.profession.title': 'Profession Preset',
-    'appearance.profession.description': 'Pick a profession to auto-recommend colors, sections, template, and animation style.',
-    'appearance.profession.selector': 'Profession category',
-    'appearance.profession.applyPreset': 'Apply Recommended Style',
-    'appearance.profession.presetDetails': 'Preset details',
-    'appearance.profession.template': 'Template',
-    'appearance.profession.palette': 'Palette',
-    'appearance.profession.animation': 'Animation',
-    'appearance.profession.cta': 'CTA',
-    'appearance.profession.sections': 'Recommended sections',
-    'appearance.profession.applied': 'Profession preset applied',
-    'appearance.template.title': 'Template',
-    'appearance.template.description': 'Choose a layout template for your portfolio',
-    'appearance.template.disabled': 'Coming Soon',
-    'appearance.template.active': 'Active',
-    'appearance.theme.title': 'Theme Mode',
-    'appearance.theme.description': 'Select the default theme for your portfolio',
-    'appearance.colorPalette.title': 'Color Palette',
-    'appearance.colorPalette.description': 'Pick a color scheme that matches your brand',
-    'appearance.typography.title': 'Typography',
-    'appearance.typography.description': 'Choose a font combination for your portfolio',
-    'appearance.typography.headingSample': 'Heading Text',
-    'appearance.typography.bodySample': 'Body text sample for preview',
-    'appearance.animationPreset.title': 'Animation Preset',
-    'appearance.animationPreset.description': 'Control the level of animation on your portfolio',
-    'appearance.customAccentColor.title': 'Custom Accent Color',
-    'appearance.customAccentColor.description': 'Override the palette accent with your own hex color',
-    'appearance.customAccentColor.inputLabel': 'Hex Color',
-    'appearance.sectionVisibility.title': 'Section Visibility',
-    'appearance.sectionVisibility.description': 'Toggle which sections appear on your published portfolio',
-    'appearance.reset.button': 'Reset All Appearance',
-    'appearance.reset.dialog.title': 'Reset Appearance to Defaults',
-    'appearance.reset.dialog.description': 'Are you sure you want to reset all appearance settings to their default values? This action cannot be undone.',
-    'appearance.reset.dialog.cancel': 'Cancel',
-    'appearance.reset.dialog.confirm': 'Reset',
-    'appearance.reset.success': 'Appearance reset to defaults',
 
     // Sections page
-    'sections.pageTitle': 'Section Order',
-    'sections.pageDescription': 'Drag and drop to reorder sections on your portfolio',
-    'sections.helpText': 'Drag sections to reorder how they appear on your portfolio. Toggle visibility to show or hide sections.',
-    'sections.visible': 'Visible',
-    'sections.hidden': 'Hidden',
     
     // Publish page
     'publish.title': 'Publish',
@@ -810,6 +757,12 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     'nav.myPortfolios': 'بورتفوليوهاتي',
     'nav.templates': 'القوالب',
     'nav.settings': 'الإعدادات',
+    'shell.workspace': 'مساحة العمل',
+    'shell.menu': 'فتح القائمة',
+    'shell.toggleTheme': 'تبديل المظهر الفاتح/الداكن',
+    'shell.account': 'قائمة الحساب',
+    'shell.searchNoResults': 'لا توجد بورتفوليوهات تطابق "{query}".',
+    'myPortfolios.card.more': 'إجراءات أخرى',
 
     'editor.editing': 'التعديل: {name}',
     'editor.portfolioEditor': 'محرر البورتفوليو',
@@ -838,13 +791,7 @@ export const messages: Record<AppLocale, Record<string, string>> = {
 
     'templates.title': 'القوالب',
     'templates.description': 'اختر مظهرًا أوليًا لبورتفوليو جديد، أو طبّقه على بورتفوليو لديك بالفعل.',
-    'templates.comingSoon': 'قريبًا',
-    'templates.available': 'متاح',
     'templates.startNew': 'بدء بورتفوليو جديد',
-    'templates.desc.modern': 'بورتفوليو داكن للمطوّرين فوق شبكة تفاعلية حيّة — طباعة هادئة، مهارات بأيقونات التقنيات، وعرض كبير ومتناوب للمشاريع.',
-    'templates.desc.minimal': 'بورتفوليو شخصي تتصدّره صورتك — عنوان بلونين، بطاقات صور مائلة، شارة تمرير دوّارة وبطاقات مشاريع ناعمة الحواف.',
-    'templates.desc.corporate': 'بورتفوليو داكن مفعم بالحركة — واجهة ثلاثية الأعمدة بهالة ضوئية، مؤشر مخصّص، بطاقات مشاريع منزلقة بلوحات تفاصيل وخبرات في تبويبات.',
-    'templates.desc.creative': 'بورتفوليو استوديو بروح الملصقات — عناوين ضخمة، رسم توضيحي يناسب مهنتك، أشكال سائلة ودراسات حالة للمشاريع بعرض كامل.',
     'templates.applyPlaceholder': 'تطبيق على بورتفوليو...',
     'templates.applyButton': 'تطبيق',
     'templates.applySuccess': 'تم تطبيق القالب.',
@@ -882,19 +829,12 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     'wizard.fontLabel': 'نمط الخط',
     'wizard.animationLabel': 'نمط الحركة',
     'wizard.suggested': 'مقترح',
-    'wizard.selected': 'محدد',
     'wizard.back': 'رجوع',
     'wizard.next': 'التالي',
     'wizard.create': 'إنشاء البورتفوليو',
     'wizard.createSuccess': 'تم إنشاء البورتفوليو بنجاح.',
     'wizard.createError': 'تعذر إنشاء البورتفوليو. يرجى المحاولة مرة أخرى.',
 
-    'preview.title': 'معاينة',
-    'preview.description': 'شاهد كيف يبدو بورتفوليوك للزوار.',
-    'preview.loading': 'جارٍ تحميل معاينة البورتفوليو...',
-    'preview.noData': 'لم يتم العثور على بيانات البورتفوليو.',
-    'preview.desktop': 'سطح المكتب',
-    'preview.mobile': 'الجوال',
 
     'toast.signedOut': 'تم تسجيل الخروج',
     'toast.messageSent': 'تم إرسال الرسالة بنجاح!',
@@ -909,9 +849,6 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     'dashboard.nav.certifications': 'الشهادات',
     'dashboard.nav.testimonials': 'آراء العملاء',
     'dashboard.nav.gallery': 'المعرض',
-    'dashboard.nav.appearance': 'المظهر',
-    'dashboard.nav.sections': 'الأقسام',
-    'dashboard.nav.preview': 'معاينة',
     'dashboard.nav.publish': 'النشر',
 
     // authentication / login page
@@ -1443,53 +1380,8 @@ export const messages: Record<AppLocale, Record<string, string>> = {
     'gallery.form.createDescription': 'أضف صورة جديدة إلى معرضك.',
 
     // Appearance page
-    'appearance.title': 'المظهر',
-    'appearance.description': 'خصص شكل وإحساس البورتفوليو الخاص بك',
-    'appearance.language.title': 'اللغة واتجاه الصفحة',
-    'appearance.language.description': 'بدّل بين العربية والإنجليزية للوحة التحكم ومعاينة البورتفوليو العامة.',
-    'appearance.profession.title': 'قالب حسب التخصص',
-    'appearance.profession.description': 'اختر تخصصك ليتم اقتراح الألوان والأقسام والقالب والحركات المناسبة تلقائيًا.',
-    'appearance.profession.selector': 'نوع التخصص',
-    'appearance.profession.applyPreset': 'تطبيق النمط المقترح',
-    'appearance.profession.presetDetails': 'تفاصيل القالب',
-    'appearance.profession.template': 'القالب',
-    'appearance.profession.palette': 'الألوان',
-    'appearance.profession.animation': 'الأنيميشن',
-    'appearance.profession.cta': 'زر الدعوة',
-    'appearance.profession.sections': 'الأقسام المقترحة',
-    'appearance.profession.applied': 'تم تطبيق إعدادات التخصص',
-    'appearance.template.title': 'القالب',
-    'appearance.template.description': 'اختر قالب تخطيط لبورتفوليوك',
-    'appearance.template.disabled': 'قريبًا',
-    'appearance.template.active': 'نشط',
-    'appearance.theme.title': 'وضع الثيم',
-    'appearance.theme.description': 'اختر الثيم الافتراضي لبورتفوليوك',
-    'appearance.colorPalette.title': 'لوحة الألوان',
-    'appearance.colorPalette.description': 'اختر نظام ألوان يتناسب مع علامتك التجارية',
-    'appearance.typography.title': 'الخطوط',
-    'appearance.typography.description': 'اختر مجموعة خطوط لبورتفوليوك',
-    'appearance.typography.headingSample': 'نص العنوان',
-    'appearance.typography.bodySample': 'نص الجسم لعرض المعاينة',
-    'appearance.animationPreset.title': 'إعدادات الحركة',
-    'appearance.animationPreset.description': 'تحكم في مستوى الحركة في بورتفوليوك',
-    'appearance.customAccentColor.title': 'لون مخصص',
-    'appearance.customAccentColor.description': 'تجاوز لون التمييز في لوحة الألوان بلون hex خاص بك',
-    'appearance.customAccentColor.inputLabel': 'لون Hex',
-    'appearance.sectionVisibility.title': 'رؤية الأقسام',
-    'appearance.sectionVisibility.description': 'تبديل الأقسام التي تظهر في بورتفوليوك المنشور',
-    'appearance.reset.button': 'إعادة تعيين المظهر',
-    'appearance.reset.dialog.title': 'إعادة تعيين المظهر إلى القيم الافتراضية',
-    'appearance.reset.dialog.description': 'هل أنت متأكد أنك تريد إعادة تعيين جميع إعدادات المظهر إلى قيمها الافتراضية؟ هذا الإجراء لا يمكن التراجع عنه.',
-    'appearance.reset.dialog.cancel': 'إلغاء',
-    'appearance.reset.dialog.confirm': 'إعادة تعيين',
-    'appearance.reset.success': 'تم إعادة تعيين المظهر إلى الإعدادات الافتراضية',
     
     // Sections page
-    'sections.pageTitle': 'ترتيب الأقسام',
-    'sections.pageDescription': 'اسحب وأفلت لإعادة ترتيب الأقسام على بورتفوليوك',
-    'sections.helpText': 'اسحب الأقسام لإعادة ترتيب كيفية ظهورها على بورتفوليوك. قم بتبديل الرؤية لإظهار أو إخفاء الأقسام.',
-    'sections.visible': 'مرئي',
-    'sections.hidden': 'مخفي',
     
     // Publish page
     'publish.title': 'نشر',
@@ -1576,6 +1468,11 @@ export const messages: Record<AppLocale, Record<string, string>> = {
 
   },
 };
+
+// Design & Preview, template registry, presets and template copy live in their own module.
+for (const lang of Object.keys(designMessages) as AppLocale[]) {
+  Object.assign(messages[lang], designMessages[lang]);
+}
 
 export type TranslateVars = Record<string, string | number>;
 

@@ -103,7 +103,7 @@ export default function GalleryPage() {
       <div className="space-y-6">
         <PageHeader title={t('gallery.title')}>
           <Button disabled>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             {t('gallery.addButton')}
           </Button>
         </PageHeader>
@@ -125,7 +125,7 @@ export default function GalleryPage() {
     <div className="space-y-6">
       <PageHeader title={t('gallery.title')} description={t('gallery.headerDescription')}>
         <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           {t('gallery.addButton')}
         </Button>
       </PageHeader>

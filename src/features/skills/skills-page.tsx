@@ -169,7 +169,7 @@ export default function SkillsPage() {
       <div className="space-y-6">
         <PageHeader title={t("skills.title")}>
           <Button disabled>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             {t("skills.addButton")}
           </Button>
         </PageHeader>
@@ -183,7 +183,7 @@ export default function SkillsPage() {
       <div className="space-y-6">
         <PageHeader title={t("skills.title")}>
           <Button onClick={openCreateDialog}>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             {t("skills.addButton")}
           </Button>
         </PageHeader>
@@ -196,7 +196,7 @@ export default function SkillsPage() {
     <div className="space-y-6">
       <PageHeader title={t("skills.title")}>
         <Button onClick={openCreateDialog}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           {t("skills.addButton")}
         </Button>
       </PageHeader>
@@ -240,7 +240,7 @@ export default function SkillsPage() {
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        className="group rounded-xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+                        className="group rounded-xl border border-border bg-card p-4 shadow-card transition-shadow hover:shadow-card-hover"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
@@ -268,7 +268,7 @@ export default function SkillsPage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 text-destructive hover:text-destructive"
+                              className="h-7 w-7 text-destructive hover:bg-destructive-soft hover:text-destructive"
                               onClick={() => setDeleteTarget(skill)}
                             >
                               <Trash2 className="h-3 w-3" />

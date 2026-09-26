@@ -1,6 +1,10 @@
 import { generateId } from '@/lib/utils';
 import { useAuthStore } from '@/store';
 import { ALL_SECTIONS, DEFAULT_SECTION_VISIBILITY } from '@/lib/constants';
+import { TEMPLATE_IDS } from '@/lib/presets/templates';
+import { PROFESSION_IDS } from '@/lib/presets/professions';
+import { fontPresets } from '@/lib/presets/fonts';
+import { DESIGN_VERSION } from '@/lib/design/design-settings';
 import type {
   Portfolio, Project, Experience, Skill, Service,
   Certification, Testimonial, GalleryItem, AuthResponse, PublicPortfolioData, SocialPending,
@@ -19,19 +23,8 @@ const DEFAULT_SOCIAL_LINKS: Portfolio['socialLinks'] = {
   website: '',
   youtube: '',
 };
-const PROFESSION_VALUES: ProfessionCategory[] = [
-  'developer',
-  'doctor',
-  'lawyer',
-  'designer',
-  'photographer',
-  'coach',
-  'freelancer',
-  'student',
-  'business-owner',
-  'other',
-];
-const TEMPLATE_VALUES: TemplateId[] = ['modern', 'minimal', 'corporate', 'creative'];
+const PROFESSION_VALUES: ProfessionCategory[] = PROFESSION_IDS;
+const TEMPLATE_VALUES: TemplateId[] = TEMPLATE_IDS;
 const COLOR_PALETTE_VALUES: ColorPaletteId[] = [
   'monochrome',
   'corporate-blue',
@@ -41,7 +34,7 @@ const COLOR_PALETTE_VALUES: ColorPaletteId[] = [
   'elegant-neutral',
 ];
 const ANIMATION_VALUES: AnimationPresetId[] = ['none', 'subtle', 'soft', 'modern', 'dynamic'];
-const FONT_VALUES: FontPresetId[] = ['professional', 'modern', 'creative'];
+const FONT_VALUES = Object.keys(fontPresets) as FontPresetId[];
 const THEME_VALUES: ThemeMode[] = ['light', 'dark', 'auto'];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -153,7 +146,7 @@ export function backendToFrontendPortfolio(record: BackendPortfolioLike): Portfo
     templateId: 'modern',
     colorPaletteId: 'elegant-neutral',
     animationPresetId: 'soft',
-    fontPresetId: 'professional',
+    fontPresetId: 'signature',
     themeMode: 'light',
     customAccentColor: '',
     sectionOrder: [...ALL_SECTIONS],
@@ -183,7 +176,13 @@ export function backendToFrontendPortfolio(record: BackendPortfolioLike): Portfo
     templateId: enumValue(data.templateId, TEMPLATE_VALUES, 'modern'),
     colorPaletteId: enumValue(data.colorPaletteId, COLOR_PALETTE_VALUES, 'elegant-neutral'),
     animationPresetId: enumValue(data.animationPresetId, ANIMATION_VALUES, 'soft'),
-    fontPresetId: enumValue(data.fontPresetId, FONT_VALUES, 'professional'),
+    // Before design v2 the font setting had no visible effect on templates, so legacy data
+    // is read as the template's signature typography (what it has always rendered with).
+    fontPresetId:
+      typeof data.designVersion === 'number' && data.designVersion >= DESIGN_VERSION
+        ? enumValue(data.fontPresetId, FONT_VALUES, 'signature')
+        : 'signature',
+    designVersion: DESIGN_VERSION,
     themeMode: enumValue(data.themeMode, THEME_VALUES, 'light'),
     sectionOrder: normalizeSectionOrder(data.sectionOrder),
     sectionVisibility: normalizeSectionVisibility(data.sectionVisibility),

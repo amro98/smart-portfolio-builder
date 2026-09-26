@@ -4,9 +4,9 @@ import { cn } from '@/lib/utils';
 type Variant = 'error' | 'success' | 'info';
 
 const STYLES: Record<Variant, { box: string; icon: typeof AlertCircle; iconClass: string }> = {
-  error: { box: 'border-destructive/30 bg-destructive/5', icon: AlertCircle, iconClass: 'text-destructive' },
-  success: { box: 'border-teal-600/30 bg-teal-600/5', icon: CheckCircle2, iconClass: 'text-teal-600' },
-  info: { box: 'border-border bg-muted/50', icon: Info, iconClass: 'text-muted-foreground' },
+  error: { box: 'border-destructive/25 bg-destructive-soft/60', icon: AlertCircle, iconClass: 'text-destructive' },
+  success: { box: 'border-success/25 bg-success-soft/60', icon: CheckCircle2, iconClass: 'text-success-soft-foreground' },
+  info: { box: 'border-primary/20 bg-primary-soft', icon: Info, iconClass: 'text-primary-soft-foreground' },
 };
 
 /** Inline, announced message panel for auth screens, with optional follow-up actions. */

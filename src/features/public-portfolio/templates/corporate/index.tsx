@@ -8,7 +8,7 @@ import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import { usePortfolioLocale } from '../../portfolio-locale';
 import { getAmbientIntensity, type AmbientIntensity } from '../scene-config';
 import { getSocialIcon, socialEntries, sortByOrder, useContactForm, type TemplateContentProps } from '../shared';
-import { resolveAccent, skinStyle, splitLastWord, yearOf, type TemplateSkin } from '../theme';
+import { DISPLAY_FONT, fontVars, resolveAccent, skinStyle, splitLastWord, yearOf, type TemplateSkin } from '../theme';
 import { scrollToSection, splitNav, useActiveSection, useLockScroll, useNavSections, useScrollY } from '../nav-utils';
 import { useAmbientMotion, useReveal } from '../motion-utils';
 import { getTechIcon, readableBrandColor } from '../tech-icons';
@@ -29,7 +29,7 @@ const SKIN: TemplateSkin = {
   muted: '240 8% 62%',
   border: '240 10% 16%',
 };
-const DISPLAY = { fontFamily: "'Unbounded', system-ui, sans-serif" } as const;
+const DISPLAY = DISPLAY_FONT;
 
 type Reveal = ReturnType<typeof useReveal>;
 
@@ -661,7 +661,10 @@ export default function MotionTemplate({
   const intensity = getAmbientIntensity(animation.id);
   const animate = useAmbientMotion(intensity);
   const { accent } = resolveAccent(portfolio, SKIN.signatureAccent);
-  const style = { ...skinStyle(SKIN, accent), fontFamily: "'Inter', system-ui, sans-serif" } as React.CSSProperties;
+  const style = {
+    ...skinStyle(SKIN, accent),
+    ...fontVars({ display: "'Unbounded', system-ui, sans-serif", body: "'Inter', system-ui, sans-serif" }),
+  } as React.CSSProperties;
 
   // Education lives in the Experience tabs when that section is shown, so the credentials
   // section doesn't repeat it — but nothing is dropped if Experience is hidden.

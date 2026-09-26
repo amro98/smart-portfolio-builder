@@ -57,7 +57,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -65,15 +65,15 @@ export default function ForgotPasswordPage() {
         className="w-full max-w-md"
       >
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-600">
-            <Layers className="h-5 w-5 text-white" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-primary shadow-sm">
+            <Layers className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="text-lg font-semibold text-foreground">
             {t('auth.forgotPassword.brand')}
           </span>
         </div>
 
-        <Card className="border shadow-lg">
+        <Card className="border-border-warm shadow-elevated">
           {submitted ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
@@ -81,8 +81,8 @@ export default function ForgotPasswordPage() {
               transition={{ duration: 0.3 }}
             >
               <CardHeader className="text-center pb-4">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-900/30">
-                  <CheckCircle className="h-7 w-7 text-teal-600" />
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-success-soft">
+                  <CheckCircle className="h-7 w-7 text-success-soft-foreground" />
                 </div>
                 <CardTitle className="text-2xl font-bold text-foreground">
                   {t('auth.forgotPassword.successTitle')}
@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
               <CardContent className="pt-2 pb-2">
                 <div className="rounded-lg border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
                   <div className="flex items-start gap-3">
-                    <Mail className="h-5 w-5 mt-0.5 text-teal-600 shrink-0" />
+                    <Mail className="h-5 w-5 mt-0.5 text-primary shrink-0" />
                     <p>
                       {t('auth.forgotPassword.successNote')}
                     </p>
@@ -115,7 +115,7 @@ export default function ForgotPasswordPage() {
                 </Button>
                 <Link
                   to="/login"
-                  className="inline-flex items-center justify-center text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors"
+                  className="inline-flex items-center justify-center text-sm text-primary hover:text-primary-hover font-medium transition-colors"
                 >
                   <ArrowLeft className="me-1.5 h-4 w-4 rtl:rotate-180" />
                   {t('auth.forgotPassword.backToSignIn')}
@@ -169,7 +169,7 @@ export default function ForgotPasswordPage() {
                 <CardFooter className="flex flex-col gap-4">
                   <Button
                     type="submit"
-                    className="w-full bg-teal-600 hover:bg-teal-700 text-white h-11 text-base font-medium transition-all"
+                    className="w-full h-11 text-base font-medium transition-all"
                     disabled={loading}
                   >
                     {loading ? (
@@ -186,7 +186,7 @@ export default function ForgotPasswordPage() {
                   </Button>
                   <Link
                     to="/login"
-                    className="inline-flex items-center justify-center text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors"
+                    className="inline-flex items-center justify-center text-sm text-primary hover:text-primary-hover font-medium transition-colors"
                   >
                     <ArrowLeft className="me-1.5 h-4 w-4 rtl:rotate-180" />
                     {t('auth.forgotPassword.backToSignIn')}

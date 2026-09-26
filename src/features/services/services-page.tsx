@@ -108,7 +108,7 @@ export default function ServicesPage() {
       <div className="space-y-6">
         <PageHeader title={t('services.title')}>
           <Button disabled>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             {t('services.addButton')}
           </Button>
         </PageHeader>
@@ -130,7 +130,7 @@ export default function ServicesPage() {
     <div className="space-y-6">
       <PageHeader title={t('services.title')} description={t('services.headerDescription')}>
         <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           {t('services.addButton')}
         </Button>
       </PageHeader>
@@ -176,11 +176,11 @@ export default function ServicesPage() {
               </CardContent>
               <CardFooter className="gap-2 border-t pt-4">
                 <Button variant="ghost" size="sm" onClick={() => openEdit(service)}>
-                  <Pencil className="mr-1 h-3.5 w-3.5" />
+                  <Pencil className="me-1 h-3.5 w-3.5" />
                   {t('services.actions.edit')}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(service)}>
-                  <Trash2 className="mr-1 h-3.5 w-3.5" />
+                  <Trash2 className="me-1 h-3.5 w-3.5" />
                   {t('services.actions.delete')}
                 </Button>
               </CardFooter>

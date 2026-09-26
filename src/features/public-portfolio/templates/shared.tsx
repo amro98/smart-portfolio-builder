@@ -23,6 +23,8 @@ export interface TemplateContentProps {
   gallery: GalleryItem[];
   visibleSections: SectionId[];
   animation: AnimationPreset;
+  /** Resolved from the portfolio's theme setting and the template's supported modes. */
+  colorMode: 'light' | 'dark';
   embedded?: boolean;
 }
 
@@ -81,10 +83,9 @@ export function useScrolled(threshold = 50) {
   return scrolled;
 }
 
-// Shared "back to top" affordance — tracks the real window scroll, so it's intentionally a
-// no-op when embedded (the editor's Preview iframe is its own document/window, so this still
-// works correctly there too; only the Appearance live-preview truly embeds without its own
-// scroll, and there `embedded` suppresses it since fixed positioning would escape the card).
+// Shared "back to top" affordance — tracks the real window scroll. The Design & Preview iframe
+// is its own document/window, so it works there too; truly embedded renders (template
+// thumbnails) have no scroll of their own, so `embedded` suppresses it.
 export function ScrollToTop({ embedded }: { embedded?: boolean }) {
   const [visible, setVisible] = useState(false);
 

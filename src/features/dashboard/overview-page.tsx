@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { usePortfolio, useProjects } from '@/lib/query/hooks';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from '@/components/shared/status-badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { PageHeader } from '@/components/shared/page-header';
@@ -109,21 +109,21 @@ export default function OverviewPage() {
       label: 'overview.stats.projects',
       value: String(projectCount),
       icon: FolderOpen,
-      color: 'bg-blue-100 text-blue-600 dark:bg-blue-950 dark:text-blue-400',
+      color: 'bg-brand-soft text-brand-soft-foreground',
     },
     {
       label: 'overview.stats.sections',
       value: String(enabledSections),
       icon: List,
-      color: 'bg-purple-100 text-purple-600 dark:bg-purple-950 dark:text-purple-400',
+      color: 'bg-brand-soft text-brand-soft-foreground',
     },
     {
       label: 'overview.stats.status',
       value: portfolio?.isPublished ? (t('overview.stats.value.published')) : t('overview.stats.value.draft'),
       icon: Globe,
       color: portfolio?.isPublished
-        ? 'bg-green-100 text-green-600 dark:bg-green-950 dark:text-green-400'
-        : 'bg-amber-100 text-amber-600 dark:bg-amber-950 dark:text-amber-400',
+        ? 'bg-success-soft text-success-soft-foreground'
+        : 'bg-draft-soft text-draft-soft-foreground',
       badge: true,
     },
   ];
@@ -140,9 +140,10 @@ export default function OverviewPage() {
       to: `${editorBasePath}/profile`,
     },
     {
+      // Always the draft-safe live preview; the public page only exists once published.
       label: 'overview.portfolio.quickActions.actions.preview',
       icon: ExternalLink,
-      to: `/u/${portfolio?.slug ?? ''}`,
+      to: `${editorBasePath}/design`,
     },
     {
       label: 'overview.portfolio.quickActions.actions.publish',
@@ -176,14 +177,12 @@ export default function OverviewPage() {
                     <stat.icon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm text-muted-foreground truncate">{t(stat.label)}</p>
+                    <p className="truncate text-sm font-medium text-foreground-secondary">{t(stat.label)}</p>
                     <div className="mt-0.5">
                       {stat.badge ? (
-                        <Badge variant={portfolio?.isPublished ? 'success' : 'secondary'}>
-                          {stat.value}
-                        </Badge>
+                        <StatusBadge published={!!portfolio?.isPublished} className="mt-1" />
                       ) : (
-                        <p className="text-2xl font-bold tracking-tight">{stat.value}</p>
+                        <p className="text-2xl font-bold tracking-tight text-foreground">{stat.value}</p>
                       )}
                     </div>
                   </div>
@@ -208,9 +207,9 @@ export default function OverviewPage() {
                   {checklist.map((task) => (
                     <div key={task.label} className="flex items-center gap-3">
                       {task.done ? (
-                        <CheckCircle className="h-5 w-5 shrink-0 text-green-500" />
+                        <CheckCircle className="h-5 w-5 shrink-0 text-success" />
                       ) : (
-                        <Circle className="h-5 w-5 shrink-0 text-muted-foreground/40" />
+                        <Circle className="h-5 w-5 shrink-0 text-subtle-foreground" />
                       )}
                       <span
                         className={
@@ -240,7 +239,7 @@ export default function OverviewPage() {
                     <Button
                       key={action.label}
                       variant="outline"
-                      className="h-auto flex-col gap-2 py-5"
+                      className="h-auto flex-col gap-2 py-5 transition-[background-color,border-color,color,transform,box-shadow] hover:-translate-y-0.5 hover:border-primary/40 hover:bg-primary-soft hover:text-primary-soft-foreground hover:shadow-card-hover [&>svg]:text-primary"
                       asChild
                     >
                       <Link to={action.to}>

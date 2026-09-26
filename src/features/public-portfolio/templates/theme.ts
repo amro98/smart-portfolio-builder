@@ -41,13 +41,33 @@ function hexToHslTriplet(hex: string): string | null {
   return `${Math.round(hue)} ${Math.round(s * 100)}% ${Math.round(l * 100)}%`;
 }
 
-export function resolveAccent(portfolio: Portfolio, signature: string): { accent: string; isSignature: boolean } {
+export function resolveAccent(
+  portfolio: Portfolio,
+  signature: string,
+  mode: 'light' | 'dark' = 'dark'
+): { accent: string; isSignature: boolean } {
   const custom = portfolio.customAccentColor ? hexToHslTriplet(portfolio.customAccentColor) : null;
   if (custom) return { accent: custom, isSignature: false };
   if (NEUTRAL_PALETTES.has(portfolio.colorPaletteId)) return { accent: signature, isSignature: true };
   const palette = colorPalettes[portfolio.colorPaletteId];
-  return palette ? { accent: palette.dark.primary, isSignature: false } : { accent: signature, isSignature: true };
+  return palette ? { accent: palette[mode].primary, isSignature: false } : { accent: signature, isSignature: true };
 }
+
+/**
+ * Typography CSS variables for a template root. Templates style text with --tpl-display /
+ * --tpl-body; a non-"signature" font preset (set by the renderer as --font-*-override)
+ * replaces the template's own families, otherwise its signature fonts apply unchanged.
+ */
+export function fontVars(signature: { display: string; body: string }): React.CSSProperties {
+  return {
+    '--tpl-display': `var(--font-display-override, ${signature.display})`,
+    '--tpl-body': `var(--font-body-override, ${signature.body})`,
+    fontFamily: 'var(--tpl-body)',
+  } as React.CSSProperties;
+}
+
+/** Inline style for display-font text. */
+export const DISPLAY_FONT = { fontFamily: 'var(--tpl-display)' } as const;
 
 function lightnessOf(triplet: string): number {
   const parts = triplet.split(/\s+/);
@@ -67,7 +87,15 @@ export function skinStyle(skin: TemplateSkin, accent: string): React.CSSProperti
   return {
     '--primary': accent,
     '--primary-foreground': accentForeground(accent),
+    // Builder-UI tokens used by shared primitives (Button hover, selected states) — pinned to
+    // the template's accent so the SaaS indigo never leaks into a portfolio.
+    '--primary-hover': accent,
+    '--primary-soft': skin.surface,
+    '--primary-soft-foreground': accent,
     '--ring': accent,
+    // Templates were art-directed against the 0.5rem shadcn radius; the builder UI's larger
+    // radius must not reshape them.
+    '--radius': '0.5rem',
     '--background': skin.background,
     '--foreground': skin.foreground,
     '--card': skin.surface,

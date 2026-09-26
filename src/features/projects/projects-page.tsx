@@ -118,11 +118,11 @@ function SortableProjectCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className={`group relative rounded-xl border border-border bg-card shadow-sm overflow-hidden transition-shadow hover:shadow-md ${
+      className={`group relative rounded-xl border border-border bg-card shadow-card overflow-hidden transition-shadow hover:shadow-card-hover ${
         isDragging ? "z-50 shadow-lg opacity-90" : ""
       }`}
     >
-      <div className="relative aspect-video bg-muted overflow-hidden">
+      <div className="relative aspect-video overflow-hidden border-b border-border bg-canvas">
         {project.coverImage ? (
           <img
             src={resolveMediaUrl(project.coverImage)}
@@ -130,28 +130,28 @@ function SortableProjectCard({
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-muted">
-            <FolderOpen className="h-12 w-12 text-muted-foreground/40" />
+          <div className="flex h-full w-full items-center justify-center bg-canvas">
+            <FolderOpen className="h-12 w-12 text-subtle-foreground" />
           </div>
         )}
         <div className="absolute top-2 left-2 flex items-center gap-1.5">
           {project.status && (
             <Badge
-              variant={project.status === "published" ? "default" : "secondary"}
+              variant={project.status === "published" ? "success" : "secondary"}
               className="text-xs"
             >
               {project.status}
             </Badge>
           )}
           {project.category && (
-            <Badge variant="outline" className="bg-background/80 text-xs">
+            <Badge variant="outline" className="bg-card/90 text-xs">
               {project.category}
             </Badge>
           )}
         </div>
         {project.featured && (
           <div className="absolute top-2 right-2">
-            <Star className="h-5 w-5 fill-amber-400 text-amber-400" />
+            <Star className="h-5 w-5 fill-warning text-warning" />
           </div>
         )}
       </div>
@@ -217,7 +217,7 @@ function SortableProjectCard({
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-destructive hover:text-destructive"
+              className="h-8 w-8 text-destructive hover:bg-destructive-soft hover:text-destructive"
               onClick={() => onDelete(project)}
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -383,7 +383,7 @@ export default function ProjectsPage() {
       <div className="space-y-6">
         <PageHeader title={t('projects.title')}>
           <Button disabled>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             {t('projects.addProject')}
           </Button>
         </PageHeader>
@@ -397,7 +397,7 @@ export default function ProjectsPage() {
       <div className="space-y-6">
         <PageHeader title={t('projects.title')}>
           <Button onClick={openCreateDialog}>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             {t('projects.addProject')}
           </Button>
         </PageHeader>
@@ -410,7 +410,7 @@ export default function ProjectsPage() {
     <div className="space-y-6">
       <PageHeader title={t('projects.title')}>
         <Button onClick={openCreateDialog}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           {t('projects.addProject')}
         </Button>
       </PageHeader>

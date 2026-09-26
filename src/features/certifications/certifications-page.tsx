@@ -191,11 +191,11 @@ export default function CertificationsPage() {
               )}
               <div className="flex items-center gap-2 pt-1">
                 <Button variant="ghost" size="sm" onClick={() => openEdit(item)}>
-                  <Pencil className="mr-1 h-3.5 w-3.5" />
+                  <Pencil className="me-1 h-3.5 w-3.5" />
                   {t('certifications.actions.edit')}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(item)}>
-                  <Trash2 className="mr-1 h-3.5 w-3.5" />
+                  <Trash2 className="me-1 h-3.5 w-3.5" />
                   {t('certifications.actions.delete')}
                 </Button>
               </div>
@@ -211,7 +211,7 @@ export default function CertificationsPage() {
       <div className="space-y-6">
         <PageHeader title={t('certifications.title')}>
           <Button disabled>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="me-2 h-4 w-4" />
             {t('certifications.addButton')}
           </Button>
         </PageHeader>
@@ -233,7 +233,7 @@ export default function CertificationsPage() {
     <div className="space-y-6">
       <PageHeader title={t('certifications.title')} description={t('certifications.headerDescription')}>
         <Button onClick={openCreate}>
-          <Plus className="mr-2 h-4 w-4" />
+          <Plus className="me-2 h-4 w-4" />
           {t('certifications.addButton')}
         </Button>
       </PageHeader>

@@ -92,16 +92,16 @@ export default function ResetPasswordPage() {
     (confirmTouched && confirmPassword && password !== confirmPassword ? t("auth.register.errors.confirmPassword.mismatch") : undefined);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: "easeOut" }} className="w-full max-w-md">
         <div className="flex items-center justify-center gap-2 mb-8">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-600">
-            <Layers className="h-5 w-5 text-white" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-brand to-primary shadow-sm">
+            <Layers className="h-5 w-5 text-primary-foreground" />
           </div>
           <span className="text-lg font-semibold text-foreground">{t("auth.forgotPassword.brand")}</span>
         </div>
 
-        <Card className="border shadow-lg">
+        <Card className="border-border-warm shadow-elevated">
           <CardHeader>
             <CardTitle className="text-2xl font-bold text-foreground">{t("auth.reset.title")}</CardTitle>
             <CardDescription className="text-muted-foreground mt-1">{t("auth.reset.description")}</CardDescription>
@@ -121,10 +121,10 @@ export default function ResetPasswordPage() {
                 </AuthNotice>
               </CardContent>
               <CardFooter className="flex flex-col gap-3">
-                <Button asChild className="w-full h-11 bg-teal-600 hover:bg-teal-700 text-white">
+                <Button asChild className="w-full h-11">
                   <Link to="/forgot-password">{t("auth.reset.requestNew")}</Link>
                 </Button>
-                <Link to="/login" className="inline-flex items-center justify-center text-sm text-teal-600 hover:text-teal-700 font-medium">
+                <Link to="/login" className="inline-flex items-center justify-center text-sm text-primary hover:text-primary-hover font-medium">
                   <ArrowLeft className="me-1.5 h-4 w-4 rtl:rotate-180" />
                   {t("auth.forgotPassword.backToSignIn")}
                 </Link>
@@ -187,7 +187,7 @@ export default function ResetPasswordPage() {
                 </div>
               </CardContent>
               <CardFooter className="flex flex-col gap-4">
-                <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700 text-white h-11 text-base font-medium" disabled={loading}>
+                <Button type="submit" className="w-full h-11 text-base font-medium" disabled={loading}>
                   {loading ? (
                     <>
                       <Loader2 className="me-2 h-5 w-5 animate-spin" />
@@ -200,7 +200,7 @@ export default function ResetPasswordPage() {
                     </>
                   )}
                 </Button>
-                <Link to="/login" className="inline-flex items-center justify-center text-sm text-teal-600 hover:text-teal-700 font-medium">
+                <Link to="/login" className="inline-flex items-center justify-center text-sm text-primary hover:text-primary-hover font-medium">
                   <ArrowLeft className="me-1.5 h-4 w-4 rtl:rotate-180" />
                   {t("auth.forgotPassword.backToSignIn")}
                 </Link>

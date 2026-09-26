@@ -7,7 +7,7 @@ import { LanguageSwitcher } from '@/components/shared/language-switcher';
 import { usePortfolioLocale } from '../../portfolio-locale';
 import { getAmbientIntensity, type AmbientIntensity } from '../scene-config';
 import { getSocialIcon, socialEntries, sortByOrder, useContactForm, type TemplateContentProps } from '../shared';
-import { firstName, resolveAccent, skinStyle, splitLastWord, yearOf, yearsOfExperience, type TemplateSkin } from '../theme';
+import { DISPLAY_FONT, firstName, fontVars, resolveAccent, skinStyle, splitLastWord, yearOf, yearsOfExperience, type TemplateSkin } from '../theme';
 import { scrollToSection, splitNav, useActiveSection, useNavSections, useScrollY } from '../nav-utils';
 import { useAmbientMotion, useReveal } from '../motion-utils';
 import { getTechIcon, readableBrandColor } from '../tech-icons';
@@ -27,7 +27,7 @@ const SKIN: TemplateSkin = {
   muted: '120 4% 62%',
   border: '120 5% 16%',
 };
-const DISPLAY = { fontFamily: "'Syne', system-ui, sans-serif" } as const;
+const DISPLAY = DISPLAY_FONT;
 
 type Reveal = ReturnType<typeof useReveal>;
 
@@ -615,7 +615,10 @@ export default function PortraitTemplate({
     testimonials.length > 0 && { value: String(testimonials.length), label: t('public.stats.testimonials') },
   ].filter(Boolean) as { value: string; label: string }[];
 
-  const style = { ...skinStyle(SKIN, accent), fontFamily: "'Poppins', system-ui, sans-serif" } as React.CSSProperties;
+  const style = {
+    ...skinStyle(SKIN, accent),
+    ...fontVars({ display: "'Syne', system-ui, sans-serif", body: "'Poppins', system-ui, sans-serif" }),
+  } as React.CSSProperties;
 
   const sections: Record<SectionId, React.ReactNode> = {
     hero: <Hero key="hero" portfolio={portfolio} intensity={intensity} animate={animate} />,
