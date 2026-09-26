@@ -1,9 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useI18n } from '@/lib/i18n';
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Layers, ArrowLeft, Loader2, Mail, CheckCircle } from "lucide-react";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,20 +14,25 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { authApi } from "@/lib/api/client";
+import { AuthNotice } from "./components/auth-notice";
+import { authErrorKey } from "./auth-errors";
 
 export default function ForgotPasswordPage() {
   const { t } = useI18n();
-  const [email, setEmail] = useState("");
+  const location = useLocation();
+  const [email, setEmail] = useState(() => (location.state as { email?: string } | null)?.email ?? "");
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [submitError, setSubmitError] = useState<unknown>(null);
 
   function validate(): boolean {
     if (!email.trim()) {
       setError(t('auth.forgotPassword.errors.email.required'));
       return false;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError(t('auth.forgotPassword.errors.email.invalid'));
       return false;
     }
@@ -41,12 +45,12 @@ export default function ForgotPasswordPage() {
     if (!validate()) return;
 
     setLoading(true);
+    setSubmitError(null);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await authApi.forgotPassword(email.trim());
       setSubmitted(true);
-      toast.success(t('auth.forgotPassword.toast.linkSent'));
-    } catch {
-      toast.error(t('auth.forgotPassword.toast.error'));
+    } catch (err) {
+      setSubmitError(err);
     } finally {
       setLoading(false);
     }
@@ -83,10 +87,9 @@ export default function ForgotPasswordPage() {
                 <CardTitle className="text-2xl font-bold text-foreground">
                   {t('auth.forgotPassword.successTitle')}
                 </CardTitle>
-                <CardDescription className="text-muted-foreground mt-2">
+                {/* Deliberately identical whether or not the email has an account. */}
+                <CardDescription className="text-muted-foreground mt-2" role="status">
                   {t('auth.forgotPassword.successDescription')}
-                  <span className="font-medium text-foreground">{email}</span>
-                  . {t('auth.forgotPassword.successInstructions')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="pt-2 pb-2">
@@ -114,7 +117,7 @@ export default function ForgotPasswordPage() {
                   to="/login"
                   className="inline-flex items-center justify-center text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors"
                 >
-                  <ArrowLeft className="mr-1.5 rtl:mr-0 rtl:ml-1.5 h-4 w-4" />
+                  <ArrowLeft className="me-1.5 h-4 w-4 rtl:rotate-180" />
                   {t('auth.forgotPassword.backToSignIn')}
                 </Link>
               </CardFooter>
@@ -130,15 +133,20 @@ export default function ForgotPasswordPage() {
                 </CardDescription>
               </CardHeader>
 
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={handleSubmit} noValidate>
                 <CardContent className="space-y-4">
+                  {submitError !== null && (
+                    <AuthNotice variant="error">{t(authErrorKey(submitError))}</AuthNotice>
+                  )}
                   <div className="space-y-2">
                     <Label htmlFor="email" className="text-foreground">
                       {t('auth.forgotPassword.emailLabel')}
                     </Label>
                     <Input
                       id="email"
+                      name="email"
                       type="email"
+                      inputMode="email"
                       placeholder={t('auth.forgotPassword.emailPlaceholder')}
                       value={email}
                       onChange={(e) => {
@@ -146,8 +154,11 @@ export default function ForgotPasswordPage() {
                         if (error) setError("");
                       }}
                       className={error ? "border-destructive" : ""}
-                      autoComplete="email"
+                      autoComplete="username"
+                      autoCapitalize="none"
+                      spellCheck={false}
                       autoFocus
+                      aria-invalid={!!error}
                     />
                     {error && (
                       <p className="text-sm text-destructive">{error}</p>
@@ -162,10 +173,13 @@ export default function ForgotPasswordPage() {
                     disabled={loading}
                   >
                     {loading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <>
+                        <Loader2 className="me-2 h-5 w-5 animate-spin" />
+                        {t('auth.forgotPassword.submitting')}
+                      </>
                     ) : (
                       <>
-                        <Mail className="mr-2 rtl:mr-0 rtl:ml-2 h-4 w-4" />
+                        <Mail className="me-2 h-4 w-4" />
                         {t('auth.forgotPassword.submitButton')}
                       </>
                     )}
@@ -174,7 +188,7 @@ export default function ForgotPasswordPage() {
                     to="/login"
                     className="inline-flex items-center justify-center text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors"
                   >
-                    <ArrowLeft className="mr-1.5 rtl:mr-0 rtl:ml-1.5 h-4 w-4 rtl:rotate-180" />
+                    <ArrowLeft className="me-1.5 h-4 w-4 rtl:rotate-180" />
                     {t('auth.forgotPassword.backToSignIn')}
                   </Link>
                 </CardFooter>

@@ -5,6 +5,9 @@ import AuthLayout from '@/app/layouts/auth-layout';
 import LoginPage from '@/features/auth/login-page';
 import RegisterPage from '@/features/auth/register-page';
 import ForgotPasswordPage from '@/features/auth/forgot-password-page';
+import ResetPasswordPage from '@/features/auth/reset-password-page';
+import SocialConfirmPage from '@/features/auth/social-confirm-page';
+import SocialCompletePage from '@/features/auth/social-complete-page';
 import MyPortfoliosPage from '@/features/portfolios/my-portfolios-page';
 import CreatePortfolioWizardPage from '@/features/portfolios/create-portfolio-wizard-page';
 import TemplatesPage from '@/features/templates/templates-page';
@@ -42,6 +45,17 @@ export const router = createBrowserRouter([
       { path: '/login', element: <LoginPage /> },
       { path: '/register', element: <RegisterPage /> },
       { path: '/forgot-password', element: <ForgotPasswordPage /> },
+    ],
+  },
+  {
+    // Not guest-guarded: a signed-in user may open a reset link from their email, and the
+    // social pages perform their own identity switch (which must not be pre-empted by a
+    // guard redirect).
+    element: <AuthLayout />,
+    children: [
+      { path: '/reset-password', element: <ResetPasswordPage /> },
+      { path: '/auth/social/confirm', element: <SocialConfirmPage /> },
+      { path: '/auth/social/complete', element: <SocialCompletePage /> },
     ],
   },
   {

@@ -3,7 +3,7 @@ import { useAuthStore } from '@/store';
 import { ALL_SECTIONS, DEFAULT_SECTION_VISIBILITY } from '@/lib/constants';
 import type {
   Portfolio, Project, Experience, Skill, Service,
-  Certification, Testimonial, GalleryItem, AuthResponse, PublicPortfolioData,
+  Certification, Testimonial, GalleryItem, AuthResponse, PublicPortfolioData, SocialPending,
   BackendPortfolio, CreatePortfolioInput, ProfessionCategory, TemplateId,
   ColorPaletteId, AnimationPresetId, FontPresetId, ThemeMode, SectionId,
 } from '@/types';
@@ -232,6 +232,21 @@ export function resolveMediaUrl(url: string | null | undefined): string {
   return `${API_BASE_URL}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
+/**
+ * Error thrown for failed API calls. `code` is the backend's machine-readable error code
+ * (e.g. EMAIL_EXISTS) when it sent one; `status` is 0 when the server couldn't be reached.
+ */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+    readonly code?: string
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   let response: Response;
 
@@ -249,7 +264,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       },
     });
   } catch {
-    throw new Error('Unable to reach the server. Please try again.');
+    throw new ApiError('Unable to reach the server. Please try again.', 0, 'NETWORK_ERROR');
   }
 
   const responseText = await response.text();
@@ -285,24 +300,81 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
             ? responseBody
             : `Request failed with status ${response.status}`;
 
-    throw new Error(errorMessage);
+    const errorCode =
+      typeof responseBody === 'object' &&
+      responseBody !== null &&
+      'code' in responseBody &&
+      typeof responseBody.code === 'string'
+        ? responseBody.code
+        : undefined;
+
+    throw new ApiError(errorMessage, response.status, errorCode);
   }
 
   return responseBody as T;
 }
 
+export type SocialProviderId = 'google' | 'github';
+
 export const authApi = {
-  login(email: string, password: string): Promise<AuthResponse> {
+  login(email: string, password: string, rememberMe = false): Promise<AuthResponse> {
     return request<AuthResponse>('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, rememberMe }),
     });
   },
 
-  register(email: string, password: string): Promise<AuthResponse> {
+  register(email: string, password: string, name?: string): Promise<AuthResponse> {
     return request<AuthResponse>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, name }),
+    });
+  },
+
+  /** Full-page URL that starts the provider round-trip (never fetched via XHR). */
+  oauthUrl(provider: SocialProviderId, intent: 'login' | 'register', remember: boolean): string {
+    const params = new URLSearchParams({ intent });
+    if (remember) params.set('remember', '1');
+    return `${API_BASE_URL}/auth/oauth/${provider}?${params.toString()}`;
+  },
+
+  socialPending(): Promise<{ pending: SocialPending }> {
+    return request<{ pending: SocialPending }>('/auth/social/pending');
+  },
+
+  socialConfirm(): Promise<AuthResponse & { created: boolean; linked?: boolean }> {
+    return request<AuthResponse & { created: boolean; linked?: boolean }>('/auth/social/confirm', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  },
+
+  async socialCancel(): Promise<void> {
+    await request<{ ok: boolean }>('/auth/social/cancel', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    });
+  },
+
+  async forgotPassword(email: string): Promise<void> {
+    await request<{ ok: boolean }>('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+  },
+
+  async verifyResetToken(token: string): Promise<boolean> {
+    const response = await request<{ valid: boolean }>('/auth/reset-password/verify', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+    return response.valid;
+  },
+
+  async resetPassword(token: string, password: string): Promise<void> {
+    await request<{ ok: boolean }>('/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ token, password }),
     });
   },
 

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useI18n } from '@/lib/i18n';
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Layers, Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -17,6 +17,11 @@ import {
 } from "@/components/ui/card";
 import { useAuthStore } from "@/store";
 import { authApi } from "@/lib/api/client";
+import { AuthNotice } from "./components/auth-notice";
+import { AuthDivider, SocialAuthButtons } from "./components/social-auth-buttons";
+import { authErrorCode, authErrorKey, isExistingAccountCode, providerLabel } from "./auth-errors";
+import { passwordRuleError } from "./password-rules";
+import { PasswordRequirements } from "./components/password-requirements";
 
 interface FormErrors {
   fullName?: string;
@@ -27,6 +32,7 @@ interface FormErrors {
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { login } = useAuthStore();
   const { t } = useI18n();
 
@@ -38,6 +44,10 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [attemptedSubmit, setAttemptedSubmit] = useState(false);
+  const [confirmTouched, setConfirmTouched] = useState(false);
+  const [submitError, setSubmitError] = useState<string | undefined>(() => searchParams.get("authError") ?? undefined);
+  const provider = providerLabel(searchParams.get("provider"));
 
   function validate(): boolean {
     const next: FormErrors = {};
@@ -46,13 +56,12 @@ export default function RegisterPage() {
     }
     if (!email.trim()) {
       next.email = t('auth.register.errors.email.required');
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       next.email = t('auth.register.errors.email.invalid');
     }
-    if (!password) {
-      next.password = t('auth.register.errors.password.required');
-    } else if (password.length < 6) {
-      next.password = t('auth.register.errors.password.min');
+    const passwordError = passwordRuleError(password);
+    if (passwordError) {
+      next.password = t(passwordError);
     }
     if (!confirmPassword) {
       next.confirmPassword = t('auth.register.errors.confirmPassword.required');
@@ -71,24 +80,31 @@ export default function RegisterPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
+    setAttemptedSubmit(true);
     if (!validate()) return;
 
     setLoading(true);
+    setSubmitError(undefined);
     try {
-      const response = await authApi.register(email, password);
+      const response = await authApi.register(email.trim(), password, fullName.trim());
       login(response.user);
       toast.success(t('auth.register.toast.success'));
       navigate("/onboarding");
     } catch (err: unknown) {
-      const message =
-        err instanceof Error
-          ? err.message
-          : "Registration failed. Please try again.";
-      toast.error(message);
+      const code = authErrorCode(err);
+      // The server has the final say on the password policy; surface it on the field.
+      if (code === 'WEAK_PASSWORD') setErrors((prev) => ({ ...prev, password: t('auth.password.requirementsNotMet') }));
+      else setSubmitError(code ?? 'UNKNOWN');
     } finally {
       setLoading(false);
     }
   }
+
+  const existingAccount = isExistingAccountCode(submitError);
+  // Mismatch shows live once the confirm field has been left (or on submit), separate from the checklist.
+  const confirmError =
+    errors.confirmPassword ??
+    (confirmTouched && confirmPassword && password !== confirmPassword ? t('auth.register.errors.confirmPassword.mismatch') : undefined);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -122,7 +138,7 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            <div className="p-8 md:p-10">
+            <div className="p-6 sm:p-8 md:p-10">
               <div className="flex items-center gap-2 mb-6 md:hidden">
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-600">
                   <Layers className="h-5 w-5 text-white" />
@@ -141,7 +157,32 @@ export default function RegisterPage() {
                 </CardDescription>
               </CardHeader>
 
-              <form onSubmit={handleSubmit}>
+              {submitError && (
+                <AuthNotice
+                  variant="error"
+                  className="mb-5"
+                  title={existingAccount ? t('auth.errors.accountExistsTitle') : undefined}
+                  actions={
+                    existingAccount ? (
+                      <>
+                        <Link to="/login" state={{ email: email.trim() }} className="font-medium text-teal-600 hover:text-teal-700">
+                          {t('auth.register.signIn')}
+                        </Link>
+                        <Link to="/forgot-password" state={{ email: email.trim() }} className="font-medium text-teal-600 hover:text-teal-700">
+                          {t('auth.login.forgotPassword')}
+                        </Link>
+                      </>
+                    ) : undefined
+                  }
+                >
+                  {t(authErrorKey(submitError), { provider })}
+                </AuthNotice>
+              )}
+
+              <SocialAuthButtons intent="register" />
+              <AuthDivider />
+
+              <form onSubmit={handleSubmit} method="post" noValidate>
                 <CardContent className="p-0 space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="fullName" className="text-foreground">
@@ -149,6 +190,7 @@ export default function RegisterPage() {
                     </Label>
                     <Input
                       id="fullName"
+                      name="name"
                       type="text"
                       placeholder={t('auth.register.fullNamePlaceholder')}
                       value={fullName}
@@ -158,6 +200,7 @@ export default function RegisterPage() {
                       }}
                       className={errors.fullName ? "border-destructive" : ""}
                       autoComplete="name"
+                      aria-invalid={!!errors.fullName}
                     />
                     {errors.fullName && (
                       <p className="text-sm text-destructive">
@@ -172,15 +215,21 @@ export default function RegisterPage() {
                     </Label>
                     <Input
                       id="email"
+                      name="email"
                       type="email"
+                      inputMode="email"
                       placeholder={t('auth.register.emailPlaceholder')}
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
                         clearError("email");
+                        if (existingAccount) setSubmitError(undefined);
                       }}
-                      className={errors.email ? "border-destructive" : ""}
-                      autoComplete="email"
+                      className={errors.email || existingAccount ? "border-destructive" : ""}
+                      autoComplete="username"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                      aria-invalid={!!errors.email || existingAccount}
                     />
                     {errors.email && (
                       <p className="text-sm text-destructive">{errors.email}</p>
@@ -194,6 +243,7 @@ export default function RegisterPage() {
                     <div className="relative">
                       <Input
                         id="password"
+                        name="password"
                         type={showPassword ? "text" : "password"}
                         placeholder={t('auth.register.passwordPlaceholder')}
                         value={password}
@@ -201,14 +251,17 @@ export default function RegisterPage() {
                           setPassword(e.target.value);
                           clearError("password");
                         }}
-                        className={`pr-10 ${errors.password ? "border-destructive" : ""}`}
+                        className={`pe-10 ${errors.password ? "border-destructive" : ""}`}
                         autoComplete="new-password"
+                        aria-invalid={!!errors.password}
+                        aria-describedby="password-requirements"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                         tabIndex={-1}
+                        aria-label={t(showPassword ? 'auth.password.hide' : 'auth.password.show')}
                       >
                         {showPassword ? (
                           <EyeOff className="h-4 w-4" />
@@ -222,6 +275,7 @@ export default function RegisterPage() {
                         {errors.password}
                       </p>
                     )}
+                    <PasswordRequirements id="password-requirements" password={password} showErrors={attemptedSubmit} />
                   </div>
 
                   <div className="space-y-2">
@@ -234,6 +288,7 @@ export default function RegisterPage() {
                     <div className="relative">
                       <Input
                         id="confirmPassword"
+                        name="confirmPassword"
                         type={showConfirmPassword ? "text" : "password"}
                         placeholder={t('auth.register.confirmPasswordPlaceholder')}
                         value={confirmPassword}
@@ -241,16 +296,19 @@ export default function RegisterPage() {
                           setConfirmPassword(e.target.value);
                           clearError("confirmPassword");
                         }}
-                        className={`pr-10 ${errors.confirmPassword ? "border-destructive" : ""}`}
+                        onBlur={() => setConfirmTouched(true)}
+                        className={`pe-10 ${confirmError ? "border-destructive" : ""}`}
                         autoComplete="new-password"
+                        aria-invalid={!!confirmError}
                       />
                       <button
                         type="button"
                         onClick={() =>
                           setShowConfirmPassword(!showConfirmPassword)
                         }
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                        className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                         tabIndex={-1}
+                        aria-label={t(showConfirmPassword ? 'auth.password.hide' : 'auth.password.show')}
                       >
                         {showConfirmPassword ? (
                           <EyeOff className="h-4 w-4" />
@@ -259,9 +317,9 @@ export default function RegisterPage() {
                         )}
                       </button>
                     </div>
-                    {errors.confirmPassword && (
+                    {confirmError && (
                       <p className="text-sm text-destructive">
-                        {errors.confirmPassword}
+                        {confirmError}
                       </p>
                     )}
                   </div>
@@ -274,16 +332,19 @@ export default function RegisterPage() {
                     disabled={loading}
                   >
                     {loading ? (
-                      <Loader2 className="h-5 w-5 animate-spin" />
+                      <>
+                        <Loader2 className="me-2 h-5 w-5 animate-spin" />
+                        {t('auth.register.submitting')}
+                      </>
                     ) : (
                       <>
                         {t('auth.register.submit')}
-                        <ArrowRight className="ml-2 rtl:ml-0 rtl:mr-2 h-4 w-4 rtl:rotate-180" />
+                        <ArrowRight className="ms-2 h-4 w-4 rtl:rotate-180" />
                       </>
                     )}
                   </Button>
                   <p className="text-sm text-muted-foreground text-center">
-                    {t('auth.register.hasAccount')} {" "}
+                    {t('auth.register.hasAccount')}{" "}
                     <Link
                       to="/login"
                       className="text-teal-600 hover:text-teal-700 font-medium transition-colors"

@@ -3,7 +3,7 @@ import { LanguageSwitcher } from '@/components/shared/language-switcher';
 
 export default function AuthLayout() {
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="relative flex min-h-screen items-center justify-center bg-background px-4 pt-12 sm:pt-0">
       <div
         className="pointer-events-none absolute inset-0"
         style={{
@@ -12,10 +12,10 @@ export default function AuthLayout() {
           backgroundSize: '40px 40px',
         }}
       />
-      <div className="absolute top-4 right-4 z-20">
+      <div className="absolute top-4 end-4 z-20">
         <LanguageSwitcher compact />
       </div>
-      <div className="relative z-10 w-full max-w-2xl">
+      <div className="relative z-10 w-full max-w-4xl">
         <Outlet />
       </div>
     </div>

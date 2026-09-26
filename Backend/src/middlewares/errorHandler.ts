@@ -5,6 +5,7 @@ export function errorHandler(err: unknown, _req: Request, res: Response, _next: 
   if (err instanceof ZodError) {
     return res.status(400).json({
       error: "Invalid request data",
+      code: "VALIDATION_ERROR",
       details: err.issues.map((issue) => ({
         path: issue.path.join("."),
         message: issue.message,

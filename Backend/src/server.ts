@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { createApp } from "./app";
 import { prisma } from "./db/prisma";
+import { logMailDeliveryMode } from "./services/mailer";
 
 const REQUIRED_ENV_VARS = ["DATABASE_URL", "JWT_SECRET"] as const;
 
@@ -18,6 +19,18 @@ function assertRequiredEnvVars() {
 }
 
 assertRequiredEnvVars();
+
+// Not fatal (email/password auth works without them), but OAuth callbacks and reset-email
+// links would otherwise point at localhost defaults.
+if (process.env.NODE_ENV === "production") {
+  const missing = ["FRONTEND_URL", "API_PUBLIC_URL"].filter((name) => !process.env[name]);
+  if (missing.length > 0) {
+    // eslint-disable-next-line no-console
+    console.warn(`[api] Auth configuration incomplete: ${missing.join(", ")} not set. See Backend/.env.example.`);
+  }
+}
+
+logMailDeliveryMode();
 
 const app = createApp();
 

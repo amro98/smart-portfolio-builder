@@ -69,3 +69,18 @@ Users can:
 ### (1) Install dependencies
 ```bash
 npm install
+```
+
+### Authentication setup (Backend)
+
+Email/password sign-in works out of the box. Configure the rest in `Backend/.env` (see `Backend/.env.example` for every variable):
+
+- **URLs** — `FRONTEND_URL` (where the SPA runs) and `API_PUBLIC_URL` (this API's public URL).
+- **Google** — create an OAuth client ID (type *Web application*) in Google Cloud Console and set `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`. Authorized redirect URI: `${API_PUBLIC_URL}/auth/oauth/google/callback` (locally `http://localhost:4000/auth/oauth/google/callback`).
+- **GitHub** — create an OAuth App and set `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET`. Authorization callback URL: `${API_PUBLIC_URL}/auth/oauth/github/callback` (locally `http://localhost:4000/auth/oauth/github/callback`).
+- A provider stays disabled until both of its values are set; its button then explains that sign-in with it isn't available.
+- **Password-reset email** — set the `SMTP_*` variables for real delivery. In development with no `SMTP_HOST`, reset emails (with the link) are printed to the API console instead. Production requires SMTP.
+
+First-time Google/GitHub sign-ins land on a confirmation screen; no account is created until the user confirms. If the provider's *verified* email already belongs to an account, the screen instead offers to link that provider to the existing account (never automatically, never for unverified emails), so one user can sign in with password, Google and GitHub.
+
+Run the backend auth unit tests with `npm test` (in `Backend/`).

@@ -12,13 +12,49 @@ enum PortfolioStatus {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String
+  id    String  @id @default(cuid())
+  // Always stored trimmed + lowercased.
+  email String  @unique
+  name  String?
+  // Null for accounts created through a social provider that never set a password.
+  passwordHash String?
+  // Embedded in every session JWT; bumping it (e.g. after a password reset) revokes all
+  // existing sessions for the user.
+  tokenVersion Int      @default(0)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  portfolios Portfolio[]
+  portfolios          Portfolio[]
+  authAccounts        AuthAccount[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+// A linked external identity (Google, GitHub, ...). A user may have several; an identity
+// belongs to exactly one user.
+model AuthAccount {
+  id                String   @id @default(cuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider          String
+  providerAccountId String
+  providerEmail     String?
+  createdAt         DateTime @default(now())
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+// Only a SHA-256 hash of the emailed token is stored; the raw token never touches the DB.
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
 }
 
 model Portfolio {

@@ -1,28 +1,35 @@
 import type { NextFunction, Request, Response } from "express";
 
-import { AUTH_COOKIE_NAME } from "../../constants/cookies";
-import { verifyAuthToken } from "../../utils/jwt";
+import { resolveSessionUserId } from "./session";
 
-export function requireAuth(req: Request, res: Response, next: NextFunction) {
-  const token = req.cookies?.[AUTH_COOKIE_NAME];
-
-  if (!token) {
-    return res.status(401).json({
-      error: "Unauthenticated",
-    });
-  }
-
+export async function requireAuth(req: Request, res: Response, next: NextFunction) {
   try {
-    const payload = verifyAuthToken(token);
+    const userId = await resolveSessionUserId(req);
 
-    req.userId = payload.userId;
+    if (!userId) {
+      return res.status(401).json({
+        error: "Unauthenticated",
+      });
+    }
+
+    req.userId = userId;
 
     return next();
-  } catch {
-    return res.status(401).json({
-      error: "Unauthenticated",
-    });
+  } catch (error) {
+    return next(error);
   }
+}
+
+/**
+ * State-changing auth endpoints only accept JSON. Browsers can't send a cross-site
+ * `application/json` POST without a CORS preflight (which our CORS policy rejects), so this
+ * closes the classic form-POST CSRF hole for cookie-authenticated routes.
+ */
+export function requireJsonBody(req: Request, res: Response, next: NextFunction) {
+  if (!req.is("application/json")) {
+    return res.status(415).json({ error: "Expected a JSON request body", code: "UNSUPPORTED_CONTENT_TYPE" });
+  }
+  return next();
 }
 
 export function getAuthenticatedUserId(req: Request) {

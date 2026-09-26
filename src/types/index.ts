@@ -31,6 +31,7 @@ export type SectionId =
 export interface User {
   id: string;
   email: string;
+  name?: string | null;
   createdAt: string;
   updatedAt?: string;
   onboardingCompleted?: boolean;
@@ -38,6 +39,17 @@ export interface User {
 
 export interface AuthResponse {
   user: User;
+}
+
+/** A first-time social sign-up waiting for the user's explicit confirmation. */
+export interface SocialPending {
+  /** "signup": create a new account; "link": add this provider to the existing account with this email. */
+  mode: 'signup' | 'link';
+  provider: string;
+  providerLabel: string;
+  email: string;
+  name: string | null;
+  expiresAt: string;
 }
 
 export interface BackendPortfolio {
