@@ -1,5 +1,5 @@
-import { Router } from "express";
-import multer from "multer";
+import { Router, type NextFunction, type Request, type Response } from "express";
+import multer, { type FileFilterCallback } from "multer";
 import path from "node:path";
 import crypto from "node:crypto";
 
@@ -19,8 +19,9 @@ const EXTENSION_BY_MIME: Record<string, string> = {
 };
 
 const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
-  filename: (_req, file, cb) => {
+  destination: (_req: Request, _file: Express.Multer.File, cb: (error: Error | null, destination: string) => void) =>
+    cb(null, UPLOADS_DIR),
+  filename: (_req: Request, file: Express.Multer.File, cb: (error: Error | null, filename: string) => void) => {
     const ext = EXTENSION_BY_MIME[file.mimetype] ?? path.extname(file.originalname);
     cb(null, `${crypto.randomUUID()}${ext}`);
   },
@@ -29,7 +30,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage,
   limits: { fileSize: MAX_IMAGE_SIZE_BYTES, files: 1 },
-  fileFilter: (_req, file, cb) => {
+  fileFilter: (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
     if (!ALLOWED_IMAGE_MIME_TYPES.includes(file.mimetype)) {
       cb(new Error("UNSUPPORTED_FILE_TYPE"));
       return;
@@ -42,7 +43,7 @@ export const uploadsRouter = Router();
 
 uploadsRouter.use(requireAuth);
 
-uploadsRouter.post("/image", (req, res, next) => {
+uploadsRouter.post("/image", (req: Request, res: Response, next: NextFunction) => {
   upload.single("file")(req, res, (err: unknown) => {
     if (err) {
       if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
